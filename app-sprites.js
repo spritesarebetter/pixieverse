@@ -51,16 +51,20 @@
   }
   function moveStroke(c,e){if(activeCanvas!==c||!activeSprite)return false;e.preventDefault();e.stopImmediatePropagation();const p=pointFor(c,e);paintLine(activeSprite,lastPoint,p,eraseStroke?0:1);lastPoint=p;L=p.y;drawSprite(c,activeSprite,L);if(typeof renderCompositePreview==='function')renderCompositePreview();return true}
   function endStroke(c,e){if(activeCanvas!==c)return false;e?.preventDefault?.();e?.stopImmediatePropagation?.();activeCanvas=null;activeSprite=null;lastPoint=null;if(strokeChanged){strokeChanged=false;dirty();render()}return true}
-  function wire(c,index,s,selected){
-    c.oncontextmenu=e=>e.preventDefault();
+  function wireSelected(){
+    if(editor.dataset.stableWired)return;editor.dataset.stableWired='1';editor.oncontextmenu=e=>e.preventDefault();
+    editor.addEventListener('pointerdown',e=>startStroke(editor,S,layer(),e),true);editor.addEventListener('pointermove',e=>moveStroke(editor,e),true);
+    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>editor.addEventListener(ev,e=>endStroke(editor,e),true));
+  }
+  function wireTemporary(c,index,s){
+    c.oncontextmenu=e=>e.preventDefault();c.title=s.name+' · click to select/edit';
     c.addEventListener('pointerdown',e=>startStroke(c,index,s,e),true);c.addEventListener('pointermove',e=>moveStroke(c,e),true);
     ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>c.addEventListener(ev,e=>endStroke(c,e),true));
-    if(!selected)c.title=s.name+' · click to select/edit';
   }
   function makeUnit(index,s){
     const unit=document.createElement('div');unit.className='spriteunit'+(index===S?' selected':'');const title=document.createElement('div');title.className='spritetitle';title.textContent=s.name;title.title=s.name;const body=document.createElement('div');body.className='spritebody';
-    if(index===S){editor.className='artboardshadow spritecanvas';editor.title=s.name;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wire(editor,index,s,true)}
-    else{const c=document.createElement('canvas');c.className='artboardshadow spritecanvas';drawSprite(c,s,-1);wire(c,index,s,false);const rail=document.createElement('div');buildRail(rail,s,index,false);body.append(c,rail)}
+    if(index===S){editor.className='artboardshadow spritecanvas';editor.title=s.name;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wireSelected()}
+    else{const c=document.createElement('canvas');c.className='artboardshadow spritecanvas';drawSprite(c,s,-1);wireTemporary(c,index,s);const rail=document.createElement('div');buildRail(rail,s,index,false);body.append(c,rail)}
     unit.append(title,body);return unit;
   }
 

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Sprite Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260907b">
-<link rel="stylesheet" href="palette-presets.css?v=20260907b">
-<link rel="stylesheet" href="app-features.css?v=20260907b">
-<link rel="stylesheet" href="responsive.css?v=20260907b">
-<link rel="stylesheet" href="app-editing.css?v=20260907b">
+<link rel="stylesheet" href="styles.css?v=20260907c">
+<link rel="stylesheet" href="palette-presets.css?v=20260907c">
+<link rel="stylesheet" href="app-features.css?v=20260907c">
+<link rel="stylesheet" href="responsive.css?v=20260907c">
+<link rel="stylesheet" href="app-editing.css?v=20260907c">
 </head>
 <body>
 <header>
@@ -16,12 +16,29 @@
   <div class="tools"><button id="new">New</button><button id="save">Save project</button><button id="load">Load project</button><input id="loadFile" type="file" accept=".msxsprite" hidden></div>
 </header>
 <main>
-  <aside class="panel compactleft">
-    <div class="section framesonly">
+  <aside class="panel leftpanel">
+    <div class="section">
       <div class="row"><h2>Frames</h2><button id="addFrame">＋</button></div>
       <div id="frames" class="list"></div>
       <div class="buttonrow"><button id="dupFrame">Duplicate</button><button id="frameUp">↑</button><button id="frameDown">↓</button><button id="delFrame">Delete</button></div>
       <p class="hint">Wait is measured in 60 Hz frames.</p>
+    </div>
+    <div>
+      <h2>Palette</h2>
+      <label class="palettefilelabel"><span>File</span><select id="paletteFileSelect"></select></label>
+      <input id="paletteFile" type="file" accept=".gpl" hidden>
+      <div id="palette" class="palette"></div>
+      <div class="paletteeditor">
+        <div class="paletteeditorhead"><span id="paletteChip" class="palettechip"></span><strong id="paletteIndex">Color 15</strong><code id="paletteHex">#FFFFFF</code></div>
+        <div class="rgbblock">
+          <div class="rgbtitle">MSX RGB · 0–7</div>
+          <div class="rgbinputs"><label>R <input id="msxR" type="number" min="0" max="7" step="1"></label><label>G <input id="msxG" type="number" min="0" max="7" step="1"></label><label>B <input id="msxB" type="number" min="0" max="7" step="1"></label></div>
+          <div class="rgbtitle">RGB · 0–255</div>
+          <div class="rgbinputs"><label>R <input id="palR" type="number" min="0" max="255" step="1"></label><label>G <input id="palG" type="number" min="0" max="255" step="1"></label><label>B <input id="palB" type="number" min="0" max="255" step="1"></label></div>
+        </div>
+        <label class="palettenamelabel">Palette name<input id="paletteName" type="text" maxlength="64" value="MSX default"></label>
+        <div class="paletteactions"><button id="savePaletteLocal">Save</button><button id="deletePaletteLocal" disabled>Delete</button><button id="savePaletteFile">Save .gpl</button></div>
+      </div>
     </div>
   </aside>
 
@@ -29,7 +46,7 @@
     <div class="panel editorpanel">
       <div class="editorhead">
         <div class="row wrap">
-          <div><h2 id="title">Sprite editor</h2><p id="canvasInfo" hidden></p></div>
+          <h2 id="title">Sprite editor</h2><p id="canvasInfo" hidden></p>
           <div class="tools">
             <label class="spritesizecontrol">Size<select id="spriteSize"><option value="16">16×16</option><option value="8">8×8</option></select></label>
             <button id="editorZoomIn" title="Zoom in">+</button><button id="editorZoomOut" title="Zoom out">−</button><span id="editorZoom" class="zoombadge">100%</span>
@@ -43,41 +60,41 @@
           </div>
         </div>
       </div>
-      <div class="editorwork"><div id="editorWrap" class="editorwrap"><div id="editorStage" class="editorstage"><canvas id="editor" class="artboardshadow" title="Composite view"></canvas><canvas id="editorLayer" class="artboardshadow secondaryeditor" title="Selected layer view"></canvas><div id="spriteColorRail" class="spritecolorrail" aria-label="Sprite colors aligned to scanlines"><div class="colorlabels"><span>Color</span><span>OR</span></div><div id="lines"></div></div></div></div></div>
-    </div>
-
-    <div id="previewPanel" class="panel previewpanel scanline-hidden">
-      <div class="row wrap">
-        <div><h2>VDP scene preview</h2><p id="previewInfo" class="hint"></p></div>
-        <div class="previewcontrols">
-          <div class="scenecontrols"><label>X <input id="sceneX" type="number" min="-64" max="255"></label><label>Y <input id="sceneY" type="number" min="-64" max="255"></label></div>
-          <button id="startAnim">Start</button><button id="stopAnim" disabled>Stop</button><button id="previewZoomIn" title="Zoom in">+</button><button id="previewZoomOut" title="Zoom out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="saveImage">Save image</button><label class="hint"><input id="showScanline" type="checkbox"> scanline load</label><label class="hint"><input id="limit" type="checkbox" checked> hide 9th+ sprite</label>
+      <div class="editorwork">
+        <div id="editorWrap" class="editorwrap">
+          <div id="editorStage" class="editorstage">
+            <canvas id="editor" class="artboardshadow spritecanvas" title="Selected sprite"></canvas>
+            <div id="spriteColorRail" class="spritecolorrail"><div class="colorlabels"><span>Color</span><span>OR</span></div><div id="lines"></div></div>
+          </div>
         </div>
       </div>
-      <div class="preview"><div class="previewleft"><div class="screenbox"><canvas id="screenCanvas" width="256" height="212"></canvas></div><p class="hint previewhint">Left-click/tap +10% · right-click −10% · Ctrl+wheel zoom</p></div><div class="loadpanel"><h3>Scanline load</h3><canvas id="loadCanvas" width="180" height="212"></canvas><p id="loadInfo" class="mono"></p></div></div>
     </div>
   </section>
 
-  <aside class="panel">
-    <div class="section"><div class="row"><h2>Layers / hardware sprites</h2><button id="addLayer">＋ Layer</button></div><p class="hint">Each layer is one hardware sprite. #0 has highest priority.</p><div id="layers" class="list"></div><div class="buttonrow"><button id="dupLayer">Duplicate</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete</button></div></div>
-    <div class="section"><h2>Selected layer</h2><div class="grid"><label class="span2">Name<input id="name"></label><label>Offset X<input id="layerX" type="number" min="-255" max="255"></label><label>Offset Y<input id="layerY" type="number" min="-211" max="211"></label><label>Pattern #<input id="pattern" type="number" min="0" max="255"></label><label><span>Visible</span><input id="visible" type="checkbox"></label></div><div class="buttonrow"><span class="toolbarlabel">move layer</span><button id="moveL">←</button><button id="moveR">→</button><button id="moveU">↑</button><button id="moveD">↓</button></div></div>
+  <aside class="panel rightpanel">
+    <div class="section">
+      <div class="row"><h2>Sprites</h2><button id="addLayer">＋ Sprite</button></div>
+      <p class="hint">Sprite 0 is the offset origin and highest priority.</p>
+      <div id="layers" class="list"></div>
+      <div class="buttonrow"><button id="dupLayer">Duplicate</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete</button></div>
+    </div>
+    <div class="section">
+      <h2>Selected sprite</h2>
+      <div class="grid">
+        <label class="span2">Name<input id="name"></label>
+        <label>Offset X<input id="layerX" type="number" min="-255" max="255"></label>
+        <label>Offset Y<input id="layerY" type="number" min="-211" max="211"></label>
+        <label>Pattern #<input id="pattern" type="number" min="0" max="255"></label>
+        <label><span>Visible</span><input id="visible" type="checkbox"></label>
+      </div>
+      <p class="hint">Offsets are relative to Sprite 0.</p>
+      <div class="buttonrow"><span class="toolbarlabel">offset</span><button id="moveL">←</button><button id="moveR">→</button><button id="moveU">↑</button><button id="moveD">↓</button></div>
+    </div>
     <div><h2>Export current frame</h2><div class="export"><button id="expPat">patterns.bin</button><button id="expCol">colors.bin</button><button id="expSat">sat.bin</button><button id="expPal">palette.bin</button><button id="expAsm">Z80 .asm</button></div><p id="warn" class="warning"></p></div>
   </aside>
 </main>
 <footer><span>MSX hardware remains the source of truth</span><span id="status">Ready</span></footer>
 
-<div id="palettePopup" class="palettepopup" hidden>
-  <label class="palettefilelabel"><span>File</span><select id="paletteFileSelect"></select></label>
-  <input id="paletteFile" type="file" accept=".gpl" hidden>
-  <div id="palette" class="palette"></div>
-  <div class="paletteeditor">
-    <div class="paletteeditorhead"><span id="paletteChip" class="palettechip"></span><strong id="paletteIndex">Color 15</strong><code id="paletteHex">#FFFFFF</code></div>
-    <div class="rgbblock"><div class="rgbtitle">MSX RGB · 0–7</div><div class="rgbinputs"><label>R <input id="msxR" type="number" min="0" max="7" step="1"></label><label>G <input id="msxG" type="number" min="0" max="7" step="1"></label><label>B <input id="msxB" type="number" min="0" max="7" step="1"></label></div><div class="rgbtitle">RGB · 0–255</div><div class="rgbinputs"><label>R <input id="palR" type="number" min="0" max="255" step="1"></label><label>G <input id="palG" type="number" min="0" max="255" step="1"></label><label>B <input id="palB" type="number" min="0" max="255" step="1"></label></div></div>
-    <label class="palettenamelabel">Palette name<input id="paletteName" type="text" maxlength="64" value="MSX default"></label>
-    <div class="paletteactions"><button id="savePaletteLocal">Save</button><button id="deletePaletteLocal" disabled>Delete</button><button id="savePaletteFile">Save .gpl</button></div>
-  </div>
-</div>
-
-<script src="app-core.js?v=20260907b"></script><script src="palette-presets.js?v=20260907b"></script><script src="app-canvas.js?v=20260907b"></script><script src="app-ui.js?v=20260907b"></script><script src="app-animation.js?v=20260907b"></script><script src="app-palettes.js?v=20260907b"></script><script src="app-editing.js?v=20260907b"></script><script src="app-popup.js?v=20260907b"></script><script src="app-secondary-view.js?v=20260907b"></script><script src="app-secondary-input.js?v=20260907b"></script>
+<script src="app-core.js?v=20260907c"></script><script src="palette-presets.js?v=20260907c"></script><script src="app-canvas.js?v=20260907c"></script><script src="app-ui.js?v=20260907c"></script><script src="app-frames.js?v=20260907c"></script><script src="app-palettes.js?v=20260907c"></script><script src="app-multisprite.js?v=20260907c"></script><script src="app-editing.js?v=20260907c"></script><script src="app-editor-post.js?v=20260907c"></script>
 </body>
 </html>

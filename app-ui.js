@@ -10,7 +10,6 @@ $('dupLayer').onclick=()=>{if(fr().sprites.length<32){let s=clone(layer());s.nam
 $('layerDel').onclick=()=>{if(fr().sprites.length>1){fr().sprites.splice(S,1);S=C(S,0,fr().sprites.length-1);normalizeFrameOrigin(fr());L=0;dirty();render()}};
 $('layerUp').onclick=()=>{if(S>0){let a=fr().sprites;[a[S-1],a[S]]=[a[S],a[S-1]];S--;normalizeFrameOrigin(fr());dirty();render()}};
 $('layerDown').onclick=()=>{let a=fr().sprites;if(S<a.length-1){[a[S+1],a[S]]=[a[S],a[S+1]];S++;normalizeFrameOrigin(fr());dirty();render()}};
-$('name').oninput=e=>{layer().name=e.target.value;dirty();renderLayers()};
 $('pattern').oninput=e=>{layer().pattern=+e.target.value||0;dirty();renderLayers();drawEditor();props()};
 $('layerX').oninput=e=>{if(S===0)return;layer().ox=Math.round(Number(e.target.value)||0);dirty();renderLayers();drawEditor();props()};
 $('layerY').oninput=e=>{if(S===0)return;layer().oy=Math.round(Number(e.target.value)||0);dirty();renderLayers();drawEditor();props()};
@@ -29,6 +28,7 @@ $('moveL').onclick=()=>moveSelectedSprite(-1,0);$('moveR').onclick=()=>moveSelec
 $('flipH').onclick=()=>flip(true);$('flipV').onclick=()=>flip(false);
 $('invert').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]^=1;dirty();render()};
 $('clear').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]=0;dirty();render()};
+$('clearSprite').onclick=()=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)layer().mask[y][x]=0;dirty();render();setStatus('Sprite cleared')};
 $('expPat').onclick=()=>dl(patBytes(),'patterns.bin');$('expCol').onclick=()=>dl(colBytes(),'colors.bin');$('expSat').onclick=()=>dl(satBytes(),'sat.bin');$('expPal').onclick=()=>dl(paletteBytes(),'palette.bin');
 $('expAsm').onclick=()=>{let arr=[...patBytes()],txt='; Pixieverse Sprite Mode 2\nsprite_patterns:\n'+arr.map((v,i)=>(i%16?'':'\n  db ')+'$'+v.toString(16).padStart(2,'0')).join(',').replace(/,\n/g,'\n');dl(txt,'sprites.asm','text/plain')};
 window.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;let k=e.key.toLowerCase();if(k==='p')toolset('pencil');if(k==='e')toolset('eraser');if(k==='+'||k==='=')changeEditorZoom(1);if(k==='-'||k==='_')changeEditorZoom(-1)});

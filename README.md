@@ -6,6 +6,8 @@ A browser-based MSX2 / MSX2+ Sprite Mode 2 editor.
 
 Open: https://spritesarebetter.github.io/pixieverse/
 
+SynTracker: https://spritesarebetter.github.io/pixieverse/syntracker.html
+
 ## Current editor model
 
 Pixieverse separates the non-editable composite preview from the editable hardware sprites.

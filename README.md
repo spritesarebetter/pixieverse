@@ -8,23 +8,23 @@ Open: https://spritesarebetter.github.io/pixieverse/
 
 ## Current editor model
 
-Pixieverse separates the composite preview from the editable hardware sprites.
+Pixieverse separates the non-editable composite preview from the editable hardware sprites.
 
-- one non-editable composite preview grid at the left of the Sprite editor
-- the composite preview expands automatically to include sprite offsets outside Sprite 0
-- individual editable hardware sprites are arranged to the right of the preview
+- Preview is at the top left with independent 10% zoom controls
+- Preview expands automatically to include sprite offsets outside Sprite 0
+- Preview sprite borders can be shown or hidden
+- individual editable hardware sprites are arranged horizontally in the center
+- every sprite has a title taken from its editable sprite name
+- click a sprite name in the Sprites panel to rename it
 - 8×8 or 16×16 sprite size
-- one sprite-cell-width gap between the preview and each sprite block
-- every individual sprite has its own per-scanline color swatches
+- one sprite-cell-width gap between sprite blocks
+- every sprite has per-scanline color swatches
 - Sprites 1+ also expose the Sprite Mode 2 OR/combine-color flag
-- Sprite 0 has no OR controls because it has no lower-numbered sprite to combine with
+- Sprite 0 has no OR controls and its OR bits are kept off
 - Sprite 0 is the coordinate origin and highest-priority sprite
-- all other sprite offsets are stored relative to Sprite 0
-- reordering or deleting Sprite 0 automatically rebases the frame
-- up to 32 sprites per frame
-- sprite visibility and priority ordering
-- frame wait values measured in 60 Hz frames
-- frame reordering
+- all other sprite offsets are relative to Sprite 0
+- Clear Sprite clears the complete selected sprite bitmap
+- up to 32 sprites per frame with visibility and priority ordering
 - Pencil, Eraser and rectangular selection tools
 - copy/paste, selection drag, arrow movement, flip, invert and clear
 - Undo / Redo
@@ -34,38 +34,37 @@ Pixieverse separates the composite preview from the editable hardware sprites.
 - pattern, color, SAT, palette and Z80 assembly export
 - responsive desktop/tablet layouts
 
-The old full-screen VDP scene preview is not part of the current editor layout.
+## Preview
 
-## Composite preview
+The Preview is read-only. It composites visible hardware sprites using their offsets, priority, per-line colors and OR flags.
 
-The first grid in the Sprite editor is preview-only and cannot be drawn into. It composites the visible hardware sprites using their priority, per-line colors and OR flags.
+Its grid bounds are calculated from Sprite 0 plus the offsets of visible sprites. Moving a sprite beside, above, below or to the left of Sprite 0 enlarges the Preview automatically.
 
-Its grid bounds are calculated from Sprite 0 plus the offsets of the other sprites. Moving a sprite beside, above, below or to the left of Sprite 0 therefore enlarges the preview automatically.
+The **Borders** button toggles sprite outlines in the Preview. Preview zoom is independent from Sprite editor zoom.
 
-Sprite 0 is outlined as the origin. When another sprite is selected, its bounds are also shown in the preview for orientation.
+## Sprites
 
-## Sprite colors
+Each editable sprite has its name above the bitmap. The same name appears in the Sprites panel on the right; click that name to edit it.
 
-Each editable sprite has a color rail directly beside it. Every row corresponds to the same scanline of that sprite.
+The old `x / y / pat` status line has been removed from the sprite list. Offset and pattern controls remain in the Selected sprite panel.
 
-Click a color swatch to make that sprite/scanline active, then choose a color from the Palette panel on the left.
+Each sprite has a color rail directly beside it. Every row corresponds to the same scanline. Click a color swatch, then choose a color from the Palette panel on the left.
 
-The OR checkbox maps to the Sprite Mode 2 combine-color/CC bit. It is only shown for Sprites 1 and higher. Sprite 0's OR bits are always kept off.
+The OR checkbox maps to the Sprite Mode 2 combine-color/CC bit. It is only shown for Sprites 1 and higher.
 
-## Offsets
+## Frames / animation
 
-Sprite 0 always has offset `0,0`. The Offset X/Y fields for every other sprite are relative to Sprite 0. Sprite 0's offset controls are disabled because it defines the origin.
+Frames are shown as square cards in a horizontal timeline below the sprite editors.
+
+- click a card to select its frame
+- drag a card with the mouse to reorder frames
+- each card keeps its per-frame `wait` value, measured in 60 Hz frames
+- Play animates the Preview on a 60 Hz timing base while leaving the editing frame alone
+- Stop returns the Preview to the currently selected editing frame
 
 ## Palette
 
-The Palette panel contains:
-
-- built-in palettes
-- palettes saved inside Pixieverse
-- `Load…` for `.gpl` files
-- MSX RGB values from 0–7 per channel
-- conventional RGB values from 0–255
-- Save, Delete and Save `.gpl`
+The Palette panel contains built-in palettes, browser-saved palettes, `.gpl` loading/saving, MSX RGB values from 0–7 per channel, and conventional RGB values from 0–255.
 
 RGB edits are quantized to legal MSX 3-bit RGB colors. Undo can restore palette edits.
 

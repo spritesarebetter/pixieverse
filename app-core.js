@@ -23,8 +23,12 @@ function mkFrame(i){return{name:'Frame '+i,wait:6,sprites:[mkLayer(0)]}}
 function normalizeFrameOrigin(f){
   if(!f?.sprites?.length)return;
   const bx=Math.round(Number(f.sprites[0].ox)||0),by=Math.round(Number(f.sprites[0].oy)||0);
-  f.sprites.forEach(s=>{s.ox=Math.round(Number(s.ox)||0)-bx;s.oy=Math.round(Number(s.oy)||0)-by});
+  f.sprites.forEach((s,i)=>{
+    s.ox=Math.round(Number(s.ox)||0)-bx;s.oy=Math.round(Number(s.oy)||0)-by;
+    if(/^Layer\s+\d+$/i.test(String(s.name||'')))s.name='Sprite '+i;
+  });
   f.sprites[0].ox=0;f.sprites[0].oy=0;
+  f.sprites[0].lines?.forEach(a=>a.or=false);
 }
 function defaultProject(){P={size:16,sceneX:96,sceneY:80,palette:clone(DEFAULT_PALETTE),paletteName:'MSX default',frames:[mkFrame(0)]};F=S=L=0;K=15;refreshPaletteCache()}
 function parseProject(raw){
@@ -52,9 +56,12 @@ function renderLayers(){
   const h=$('layers');h.innerHTML='';
   fr().sprites.forEach((s,i)=>{
     const d=document.createElement('div');d.className='item'+(i===S?' sel':'');
-    const r=document.createElement('div');r.className='itemrow';
+    const r=document.createElement('div');r.className='itemrow spriteitemrow';
     const eye=document.createElement('button');eye.className='eye';eye.textContent=s.visible?'●':'○';eye.title=s.visible?'Hide sprite':'Show sprite';eye.onclick=e=>{e.stopPropagation();s.visible=!s.visible;dirty();render()};
-    const n=document.createElement('div');n.innerHTML='<div class="layername">#'+i+' '+esc(s.name)+'</div><div class="layerinfo">x'+signed(s.ox)+' y'+signed(s.oy)+' · pat '+s.pattern+'</div>';
+    const n=document.createElement('div');n.className='spritename';n.contentEditable='true';n.spellcheck=false;n.textContent=s.name;n.title='Click to rename';
+    n.onclick=e=>{e.stopPropagation();S=i;L=0;n.focus()};
+    n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}else if(e.key==='Escape'){e.preventDefault();n.textContent=s.name;n.blur()}};
+    n.onblur=()=>{const next=n.textContent.replace(/\s+/g,' ').trim().slice(0,64)||('Sprite '+i);if(next!==s.name){s.name=next;dirty()}render()};
     const tag=document.createElement('span');tag.className='badge';tag.textContent=i===0?'ORIGIN':'';
     r.append(eye,n,tag);d.appendChild(r);d.onclick=()=>{S=i;L=0;render()};h.appendChild(d);
   });
@@ -64,7 +71,7 @@ function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function signed(v){return v>=0?'+'+v:String(v)}
 function props(){
   const s=layer(),origin=S===0;
-  $('name').value=s.name;$('pattern').value=s.pattern;$('layerX').value=s.ox;$('layerY').value=s.oy;$('visible').checked=s.visible;$('title').textContent='Sprite editor';
+  $('pattern').value=s.pattern;$('layerX').value=s.ox;$('layerY').value=s.oy;$('visible').checked=s.visible;$('title').textContent='Sprite editor';
   $('layerX').disabled=origin;$('layerY').disabled=origin;['moveL','moveR','moveU','moveD'].forEach(id=>$(id).disabled=origin);
 }
 function updatePaletteEditor(){

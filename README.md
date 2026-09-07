@@ -8,12 +8,16 @@ Open: https://spritesarebetter.github.io/pixieverse/
 
 ## Current editor model
 
-Pixieverse treats every hardware sprite as its own editable sprite block.
+Pixieverse separates the composite preview from the editable hardware sprites.
 
+- one non-editable composite preview grid at the left of the Sprite editor
+- the composite preview expands automatically to include sprite offsets outside Sprite 0
+- individual editable hardware sprites are arranged to the right of the preview
 - 8×8 or 16×16 sprite size
-- one sprite block per hardware sprite, arranged horizontally
-- one sprite-cell-width gap between sprite blocks
-- every sprite has its own per-scanline color swatches and OR flags
+- one sprite-cell-width gap between the preview and each sprite block
+- every individual sprite has its own per-scanline color swatches
+- Sprites 1+ also expose the Sprite Mode 2 OR/combine-color flag
+- Sprite 0 has no OR controls because it has no lower-numbered sprite to combine with
 - Sprite 0 is the coordinate origin and highest-priority sprite
 - all other sprite offsets are stored relative to Sprite 0
 - reordering or deleting Sprite 0 automatically rebases the frame
@@ -30,13 +34,23 @@ Pixieverse treats every hardware sprite as its own editable sprite block.
 - pattern, color, SAT, palette and Z80 assembly export
 - responsive desktop/tablet layouts
 
-The VDP scene preview is not part of the current editor layout.
+The old full-screen VDP scene preview is not part of the current editor layout.
+
+## Composite preview
+
+The first grid in the Sprite editor is preview-only and cannot be drawn into. It composites the visible hardware sprites using their priority, per-line colors and OR flags.
+
+Its grid bounds are calculated from Sprite 0 plus the offsets of the other sprites. Moving a sprite beside, above, below or to the left of Sprite 0 therefore enlarges the preview automatically.
+
+Sprite 0 is outlined as the origin. When another sprite is selected, its bounds are also shown in the preview for orientation.
 
 ## Sprite colors
 
-Each sprite has a color/OR rail directly beside it. Every row corresponds to the same scanline of that sprite.
+Each editable sprite has a color rail directly beside it. Every row corresponds to the same scanline of that sprite.
 
-Click a color swatch to make that sprite/scanline active, then choose a color from the Palette panel on the left. The OR checkbox maps to the Sprite Mode 2 combine-color bit.
+Click a color swatch to make that sprite/scanline active, then choose a color from the Palette panel on the left.
+
+The OR checkbox maps to the Sprite Mode 2 combine-color/CC bit. It is only shown for Sprites 1 and higher. Sprite 0's OR bits are always kept off.
 
 ## Offsets
 

@@ -2,91 +2,67 @@
 
 A browser-based MSX2 / MSX2+ Sprite Mode 2 editor.
 
-## 🚀 Launch Pixieverse
+## Launch
 
-**[Open Pixieverse in your browser](https://spritesarebetter.github.io/pixieverse/)**
+Open: https://spritesarebetter.github.io/pixieverse/
 
-## Current focus
+## Current editor model
 
-Pixieverse keeps the hardware sprite representation as the source of truth:
+Pixieverse treats every hardware sprite as its own editable sprite block.
 
-- compact single-line header and space-efficient editor layout
-- 16×16 or 8×8 size selected in the Sprite editor
-- two side-by-side drawing areas: composite view and selected-layer view
-- editor and VDP preview zoom in 10% steps
-- per-scanline color swatch and OR controls embedded beside the sprite and scaling immediately with it
-- palette editor moved out of the sidebar into a popup opened from a scanline color swatch
-- Undo / Redo, including grouped drawing strokes and selection drags
-- rectangular selection with copy/paste, arrow-key movement and direct drag movement
-- selection-aware move, flip, invert and clear
-- double-click / double-tap pixel erase
-- frames with per-frame wait values on a 60 Hz timing base
-- frame reordering and looping VDP animation preview
-- scene X/Y controls inside the VDP preview
-- each layer maps to one hardware sprite / SAT entry
-- up to 32 sprite layers with visibility and priority ordering
-- optional 8-sprites-per-scanline visualization, hidden by default
-- editable 16-entry MSX RGB3 palette: 3-bit R/G/B = 512 legal colors
-- simultaneous MSX RGB (0–7) and RGB display (0–255) values
-- built-in DawnBringer DB16, Arne16, JMP, PICO-8 and Commodore 64 palettes
-- custom palettes saved in browser storage and listed directly in the Palette File menu
-- GIMP Palette (`.gpl`) load/save
-- `palette.bin`, `patterns.bin`, `colors.bin`, `sat.bin` and Z80 assembly export
-- responsive layouts for desktop, tablets and narrow screens
-- mouse, touch and stylus drawing
+- 8×8 or 16×16 sprite size
+- one sprite block per hardware sprite, arranged horizontally
+- one sprite-cell-width gap between sprite blocks
+- every sprite has its own per-scanline color swatches and OR flags
+- Sprite 0 is the coordinate origin and highest-priority sprite
+- all other sprite offsets are stored relative to Sprite 0
+- reordering or deleting Sprite 0 automatically rebases the frame
+- up to 32 sprites per frame
+- sprite visibility and priority ordering
+- frame wait values measured in 60 Hz frames
+- frame reordering
+- Pencil, Eraser and rectangular selection tools
+- copy/paste, selection drag, arrow movement, flip, invert and clear
+- Undo / Redo
+- editor zoom in 10% steps
+- editable 16-entry MSX RGB3 palette (512 legal colors)
+- built-in palettes plus browser-saved palettes and `.gpl` load/save
+- pattern, color, SAT, palette and Z80 assembly export
+- responsive desktop/tablet layouts
+
+The VDP scene preview is not part of the current editor layout.
+
+## Sprite colors
+
+Each sprite has a color/OR rail directly beside it. Every row corresponds to the same scanline of that sprite.
+
+Click a color swatch to make that sprite/scanline active, then choose a color from the Palette panel on the left. The OR checkbox maps to the Sprite Mode 2 combine-color bit.
+
+## Offsets
+
+Sprite 0 always has offset `0,0`. The Offset X/Y fields for every other sprite are relative to Sprite 0. Sprite 0's offset controls are disabled because it defines the origin.
+
+## Palette
+
+The Palette panel contains:
+
+- built-in palettes
+- palettes saved inside Pixieverse
+- `Load…` for `.gpl` files
+- MSX RGB values from 0–7 per channel
+- conventional RGB values from 0–255
+- Save, Delete and Save `.gpl`
+
+RGB edits are quantized to legal MSX 3-bit RGB colors. Undo can restore palette edits.
 
 ## Project format
 
-Pixieverse project files use the current `.msxsprite` format only. The saved project contains the current sprite size, scene position, palette, frames, layers, masks, per-line color/OR values and frame waits.
-
-Pixieverse does not contain format-migration or legacy-project compatibility code.
-
-## Drawing controls
-
-- Left-click / drag: draw
-- Right-click / drag: erase
-- Double-click / double-tap: erase a pixel in the composite editor
-- The second canvas shows only the selected hardware layer and is directly drawable with Pencil/Eraser
-- `P`: pencil
-- `E`: eraser
-- `S`: selection tool
-- `+` / `-`: editor zoom in 10% steps
-- Ctrl + mouse wheel: editor zoom
-- Arrow buttons: move selected pixels; without a selection they shift the whole bitmap
-- Keyboard arrow keys: move the active selection
-- Drag inside an existing selection: move it directly
-- Ctrl/Cmd+C / Ctrl/Cmd+V: copy/paste selection
-- Ctrl/Cmd+Z: Undo
-- Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y: Redo
-- Flip, Invert and Clear act on the selection when one exists
-
-## Palette controls
-
-Click a scanline color swatch to open the floating palette popup. The **File** menu there contains built-in palettes, palettes saved inside Pixieverse, and **Load…** for opening a `.gpl` file.
-
-- **Save** stores the current palette in browser local storage and adds it to the File menu.
-- **Delete** removes the selected locally saved palette.
-- **Save .gpl** exports the current palette.
-- MSX RGB inputs edit the native 0–7 channel values.
-- RGB inputs edit conventional 0–255 values and snap to the nearest legal MSX RGB3 color.
-- Undo restores palette edits.
-
-## VDP preview controls
-
-- Scene X/Y place the sprite composition in the preview.
-- `+` / `-`: zoom in 10% steps.
-- Left-click / tap: zoom in 10%.
-- Right-click: zoom out 10%.
-- Ctrl + mouse wheel: zoom.
-- Start / Stop: animate at a 60 Hz timing base using each frame's wait value.
-- Scanline load: optional hardware-limit visualization, hidden by default.
+Pixieverse uses the current `.msxsprite` format only. No legacy-format migration code is maintained unless explicitly requested.
 
 ## Run locally
 
-There is no build step. Open `index.html` in a modern browser, or run:
+There is no build step. Open `index.html`, or run:
 
 ```sh
 python3 -m http.server 8000
 ```
-
-and visit `http://localhost:8000`.

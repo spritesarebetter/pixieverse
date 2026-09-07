@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Sprite Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260907d">
-<link rel="stylesheet" href="palette-presets.css?v=20260907d">
-<link rel="stylesheet" href="app-features.css?v=20260907d">
-<link rel="stylesheet" href="responsive.css?v=20260907d">
-<link rel="stylesheet" href="app-editing.css?v=20260907d">
+<link rel="stylesheet" href="styles.css?v=20260908a">
+<link rel="stylesheet" href="palette-presets.css?v=20260908a">
+<link rel="stylesheet" href="app-features.css?v=20260908a">
+<link rel="stylesheet" href="responsive.css?v=20260908a">
+<link rel="stylesheet" href="app-editing.css?v=20260908a">
 </head>
 <body>
 <header>
@@ -17,11 +17,9 @@
 </header>
 <main>
   <aside class="panel leftpanel">
-    <div class="section">
-      <div class="row"><h2>Frames</h2><button id="addFrame">＋</button></div>
-      <div id="frames" class="list"></div>
-      <div class="buttonrow"><button id="dupFrame">Duplicate</button><button id="frameUp">↑</button><button id="frameDown">↓</button><button id="delFrame">Delete</button></div>
-      <p class="hint">Wait is measured in 60 Hz frames.</p>
+    <div class="section previewsection">
+      <div class="row previewhead"><h2>Preview</h2><div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button></div></div>
+      <div id="previewWrap" class="previewwrap"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite sprite preview"></canvas></div>
     </div>
     <div>
       <h2>Palette</h2>
@@ -69,6 +67,12 @@
         </div>
       </div>
     </div>
+
+    <div class="panel timelinepanel">
+      <div class="row timelinehead"><h2>Frames / animation</h2><div class="tools"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="addFrame">＋</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button></div></div>
+      <div id="frames" class="timeline"></div>
+      <p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p>
+    </div>
   </section>
 
   <aside class="panel rightpanel">
@@ -76,12 +80,11 @@
       <div class="row"><h2>Sprites</h2><button id="addLayer">＋ Sprite</button></div>
       <p class="hint">Sprite 0 is the offset origin and highest priority.</p>
       <div id="layers" class="list"></div>
-      <div class="buttonrow"><button id="dupLayer">Duplicate</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete</button></div>
+      <div class="buttonrow"><button id="dupLayer">Duplicate</button><button id="clearSprite">Clear Sprite</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete</button></div>
     </div>
     <div class="section">
       <h2>Selected sprite</h2>
       <div class="grid">
-        <label class="span2">Name<input id="name"></label>
         <label>Offset X<input id="layerX" type="number" min="-255" max="255"></label>
         <label>Offset Y<input id="layerY" type="number" min="-211" max="211"></label>
         <label>Pattern #<input id="pattern" type="number" min="0" max="255"></label>
@@ -95,6 +98,6 @@
 </main>
 <footer><span>MSX hardware remains the source of truth</span><span id="status">Ready</span></footer>
 
-<script src="app-core.js?v=20260907d"></script><script src="palette-presets.js?v=20260907d"></script><script src="app-canvas.js?v=20260907d"></script><script src="app-ui.js?v=20260907d"></script><script src="app-frames.js?v=20260907d"></script><script src="app-palettes.js?v=20260907d"></script><script src="app-multisprite.js?v=20260907d"></script><script src="app-editing.js?v=20260907d"></script>
+<script src="app-core.js?v=20260908a"></script><script src="palette-presets.js?v=20260908a"></script><script src="app-canvas.js?v=20260908a"></script><script src="app-ui.js?v=20260908a"></script><script src="app-palettes.js?v=20260908a"></script><script src="app-multisprite.js?v=20260908a"></script><script src="app-frames.js?v=20260908a"></script><script src="app-editing.js?v=20260908a"></script>
 </body>
 </html>

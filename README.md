@@ -38,7 +38,7 @@ Pixieverse separates the non-editable composite preview from the editable hardwa
 
 ## Preview
 
-The Preview is read-only. It composites visible hardware sprites using their offsets, priority, per-line colors and OR flags.
+The Preview is "read-only". It composites visible hardware sprites using their offsets, priority, per-line colors and OR flags.
 
 Its grid bounds are calculated from Sprite 0 plus the offsets of visible sprites. Moving a sprite beside, above, below or to the left of Sprite 0 enlarges the Preview automatically.
 

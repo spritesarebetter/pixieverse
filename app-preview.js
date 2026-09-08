@@ -6,8 +6,8 @@
 
   function bounds(frame){
     const n=sz();let minX=0,minY=0,maxX=n,maxY=n;
-    frame.sprites.forEach(s=>{if(!s.visible)return;const x=clampX(s.ox),y=clampY(s.oy);minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n)});
-    return{minX,minY,w:maxX-minX,h:maxY-minY};
+    frame.sprites.forEach(s=>{const x=clampX(s.ox),y=clampY(s.oy);minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n)});
+    return{minX,minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
   function compose(frame,b){
     const cells=new Int16Array(b.w*b.h);cells.fill(-1);const n=sz();
@@ -23,9 +23,14 @@
     });
     return cells;
   }
+  function fitCell(){
+    const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz();
+    const availW=Math.max(24,wrap.clientWidth-14),availH=Math.max(24,wrap.clientHeight-14);
+    return Math.max(.5,Math.min(availW/w,availH/h))*zoom;
+  }
   function syncCss(){
-    const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),cell=EDITOR_BASE_CELL*zoom;
-    canvas.style.width=(w*cell)+'px';canvas.style.height=(h*cell)+'px';
+    const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),cell=fitCell();
+    canvas.style.width=Math.max(1,w*cell)+'px';canvas.style.height=Math.max(1,h*cell)+'px';
     $('previewZoom').textContent=Math.round(zoom*100)+'%';
   }
   function draw(frame=fr()){
@@ -49,5 +54,6 @@
   $('previewZoomOut').onclick=()=>{zoom=C(Math.round((zoom-.1)*10)/10,.1,8);syncCss()};
   $('previewBorders').onclick=()=>{showBorders=!showBorders;$('previewBorders').classList.toggle('on',showBorders);$('previewBorders').setAttribute('aria-pressed',String(showBorders));schedule(overrideFrame||fr())};
   wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(syncCss).observe(wrap);else window.addEventListener('resize',syncCss);
   draw();
 })();

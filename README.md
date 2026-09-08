@@ -12,10 +12,12 @@ NicheTracker: https://spritesarebetter.github.io/pixieverse/nichetracker.html
 
 Pixieverse separates the non-editable composite preview from the editable hardware sprites.
 
-- Preview is at the top left with independent 10% zoom controls
-- Preview expands automatically to include sprite offsets outside Sprite 0
-- Preview sprite borders can be shown or hidden
+- all control windows are stacked in the left sidebar
+- Preview, Palette, Sprites, Selected sprite, Export, and Frames/animation can be collapsed with arrow buttons
+- Preview fits the complete sprite object at its default 100% view
+- Preview has independent zoom controls and optional sprite borders
 - individual editable hardware sprites are arranged horizontally in the center
+- Sprite editor starts at 50% zoom and changes in 10% steps
 - every sprite has a title taken from its editable sprite name
 - click a sprite name in the Sprites panel to rename it
 - 8×8 or 16×16 sprite size
@@ -30,7 +32,6 @@ Pixieverse separates the non-editable composite preview from the editable hardwa
 - Pencil, Eraser and rectangular selection tools
 - copy/paste, selection drag, arrow movement, flip, invert and clear
 - Undo / Redo
-- editor zoom in 10% steps
 - editable 16-entry MSX RGB3 palette (512 legal colors)
 - built-in palettes plus browser-saved palettes and `.gpl` load/save
 - pattern, color, SAT, palette and Z80 assembly export
@@ -38,17 +39,15 @@ Pixieverse separates the non-editable composite preview from the editable hardwa
 
 ## Preview
 
-The Preview is "read-only". It composites visible hardware sprites using their offsets, priority, per-line colors and OR flags.
-
-Its grid bounds are calculated from Sprite 0 plus the offsets of visible sprites. Moving a sprite beside, above, below or to the left of Sprite 0 enlarges the Preview automatically.
+The Preview is read-only. At 100% it automatically fits the full sprite object, including sprites positioned outside Sprite 0. The `+` and `−` controls scale relative to that fitted view.
 
 The **Borders** button toggles sprite outlines in the Preview. Preview zoom is independent from Sprite editor zoom.
 
 ## Sprites
 
-Each editable sprite has its name above the bitmap. The same name appears in the Sprites panel on the right; click that name to edit it.
+The Sprites, Selected sprite, Palette, Preview, and Export controls all live in the left sidebar. Each section can be hidden or shown with its arrow button.
 
-The old `x / y / pat` status line has been removed from the sprite list. Offset and pattern controls remain in the Selected sprite panel.
+Each editable sprite has its name above the bitmap. Click the same name in the Sprites panel to edit it.
 
 Each sprite has a color rail directly beside it. Every row corresponds to the same scanline. Click a color swatch, then choose a color from the Palette panel on the left.
 
@@ -56,13 +55,14 @@ The OR checkbox maps to the Sprite Mode 2 combine-color/CC bit. It is only shown
 
 ## Frames / animation
 
-Frames are shown as square cards in a horizontal timeline below the sprite editors.
+Frames remain in their own horizontal window below the Sprite editor, not in the left sidebar.
 
 - click a card to select its frame
 - drag a card with the mouse to reorder frames
 - each card keeps its per-frame `wait` value, measured in 60 Hz frames
 - Play animates the Preview on a 60 Hz timing base while leaving the editing frame alone
 - Stop returns the Preview to the currently selected editing frame
+- the Frames/animation window can also be collapsed
 
 ## Palette
 

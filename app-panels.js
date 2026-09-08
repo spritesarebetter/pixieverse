@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  const link=document.createElement('link');link.rel='stylesheet';link.href='layout.css?v=20260909a';document.head.appendChild(link);
   function setCollapsed(section,collapsed){
     section.classList.toggle('collapsed',collapsed);
     const button=section.querySelector(':scope > .sectionhead .collapseToggle, :scope > .timelinehead .collapseToggle');

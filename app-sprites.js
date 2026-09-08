@@ -6,28 +6,44 @@
 
   layerPoint=p=>p;
   lineTable=function(){L=C(L,0,sz()-1)};
-  const cssCell=()=>Math.max(1,Math.round(EDITOR_BASE_CELL*editorZoom));
+  const dpr=()=>Math.max(1,Number(window.devicePixelRatio)||1);
+  const requestedCssCell=()=>Math.max(1,EDITOR_BASE_CELL*editorZoom);
+  const cssCell=()=>Math.max(1,Math.round(requestedCssCell()*dpr())/dpr());
+  const backingCell=()=>Math.max(1,Math.round(cssCell()*dpr()));
   const cssSize=()=>sz()*cssCell();
   const railWidth=(cell,base)=>Math.max(base?34:48,cell*(base?1.15:2.05));
-  function renderCell(){
-    const target=cssCell();
-    for(let d=Math.min(60,target);d>=1;d--)if(target%d===0)return d;
-    return target;
-  }
 
   function syncAllSpriteScales(){
-    const cell=cssCell(),size=cssSize();stage.style.setProperty('--editor-cell',cell+'px');stage.style.gap=cell+'px';
-    stage.querySelectorAll('.spritecanvas').forEach(c=>{c.style.width=size+'px';c.style.height=size+'px';c.style.minWidth=size+'px';c.style.minHeight=size+'px';c.style.imageRendering='pixelated'});
-    stage.querySelectorAll('.spritecolorrail').forEach(r=>{r.style.width=railWidth(cell,r.classList.contains('base'))+'px';r.style.height=size+'px';const rows=r.querySelector('.spriterows');if(rows)rows.style.height=size+'px'});
+    const cell=cssCell(),size=cssSize();
+    stage.style.setProperty('--editor-cell',cell+'px');
+    stage.style.gap=cell+'px';
+    stage.querySelectorAll('.spritecanvas').forEach(c=>{
+      c.style.width=size+'px';
+      c.style.height=size+'px';
+      c.style.minWidth=size+'px';
+      c.style.minHeight=size+'px';
+      c.style.imageRendering='auto';
+    });
+    stage.querySelectorAll('.spritecolorrail').forEach(r=>{
+      r.style.width=railWidth(cell,r.classList.contains('base'))+'px';
+      r.style.height=size+'px';
+      const rows=r.querySelector('.spriterows');if(rows)rows.style.height=size+'px';
+    });
   }
   window.syncAllSpriteScales=syncAllSpriteScales;
   const baseApply=applyEditorScale;
   applyEditorScale=function(){baseApply();syncAllSpriteScales();$('editorZoom').textContent=Math.round(editorZoom*100)+'%'};
 
   function drawSprite(c,s,line=-1){
-    const n=sz(),scale=renderCell(),g=c.getContext('2d');c.width=n*scale;c.height=n*scale;editorCell=scale;g.imageSmoothingEnabled=false;
+    const n=sz(),scale=backingCell(),g=c.getContext('2d');
+    c.width=n*scale;c.height=n*scale;editorCell=scale;g.imageSmoothingEnabled=false;
     g.fillStyle='#171b22';g.fillRect(0,0,c.width,c.height);
-    for(let y=0;y<n;y++)for(let x=0;x<n;x++){if(s.mask[y][x]&&s.lines[y].color){g.fillStyle=PAL[s.lines[y].color];g.fillRect(x*scale+1,y*scale+1,Math.max(1,scale-2),Math.max(1,scale-2))}}
+    for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+      if(s.mask[y][x]&&s.lines[y].color){
+        g.fillStyle=PAL[s.lines[y].color];
+        g.fillRect(x*scale+1,y*scale+1,Math.max(1,scale-2),Math.max(1,scale-2));
+      }
+    }
     g.strokeStyle='rgba(255,255,255,.12)';g.lineWidth=1;
     for(let x=0;x<=n;x++){g.beginPath();g.moveTo(x*scale+.5,0);g.lineTo(x*scale+.5,c.height);g.stroke()}
     for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(c.width,y*scale+.5);g.stroke()}

@@ -15,4 +15,7 @@
     if(!button)return;
     button.onclick=e=>{e.preventDefault();e.stopPropagation();setCollapsed(section,!section.classList.contains('collapsed'))};
   });
+  editorZoom=.5;
+  applyEditorScale();
+  window.syncAllSpriteScales?.();
 })();

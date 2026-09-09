@@ -1,0 +1,43 @@
+/* Match the control/text size of the 125% browser-zoom reference without scaling artwork canvases. */
+@media (pointer:fine){
+  header{height:38px!important;min-height:38px!important;padding:3px 10px!important;gap:8px!important}
+  header h1{font-size:19.7px!important}
+  .headerstatus{max-width:250px;height:26px;padding:0 8px;font-size:11.8px!important}
+  header>.tools{gap:4px!important}
+  header>.tools button{height:26px!important;min-height:26px!important;padding:0 7px!important;font-size:11.8px!important}
+  main{height:calc(100dvh - 38px)!important}
+  body{font-size:13.1px!important}
+  .leftpanel{font-size:12.5px!important}
+  .leftpanel h2,.editorhead h2,.timelinepanel h2{font-size:14.4px!important}
+  .hint{font-size:10.5px!important}
+  .leftpanel button,.timelinepanel button,.editorhead button,.palettebar button{font-size:11.8px!important;min-height:26px!important;padding:2px 6px!important}
+  .leftpanel input,.leftpanel select,.timelinepanel input,.editorhead input,.editorhead select,.palettebar input,.palettebar select{font-size:11.8px!important;min-height:28px!important;padding:2px 5px!important}
+  .zoombadge{font-size:11.8px!important;min-height:26px!important}
+  .iconbutton{width:30px!important;min-width:30px!important}
+  .iconbutton svg{width:17px!important;height:17px!important}
+  .colorlabels{font-size:11.8px!important}
+  .sectionhead{min-height:26px!important}
+  .collapseToggle{width:26px!important;min-width:26px!important;height:26px!important;min-height:26px!important;font-size:13px!important}
+  .previewzoom button{min-height:26px!important;padding:2px 6px!important}
+  .previewzoom .zoombadge{min-width:45px!important}
+  .mid{grid-template-rows:minmax(240px,1fr) 43px 145px!important}
+  .palettebar{height:43px!important;min-height:43px!important;padding:5px 6px!important;gap:5px!important}
+  .palettechoose{flex-basis:181px!important;width:181px!important;height:30px!important;min-height:30px!important}
+  .paletteinline{grid-template-columns:repeat(16,23px)!important;gap:2px!important;min-width:398px!important;width:398px!important}
+  .paletteinline .sw{width:23px!important;height:28px!important;min-width:23px!important;min-height:28px!important}
+  .palettebaractions{gap:3px!important}
+  .palettebaractions button{height:28px!important;min-height:28px!important;padding:0 6px!important}
+  .palettergbinline{font-size:11.8px!important;gap:4px!important}
+  .palettergbinline input{width:39px!important;height:28px!important;min-height:28px!important}
+  .spriteunithead{font-size:calc(11.8px * var(--sprite-ui-scale,1))!important;margin-bottom:calc(5.2px * var(--sprite-ui-scale,1))!important}
+  .spriteunitheadrow{gap:calc(2.6px * var(--sprite-ui-scale,1))!important}
+  .spriteunitidentity{margin-bottom:calc(2.6px * var(--sprite-ui-scale,1))!important}
+  .spriteselect{min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;padding:0 calc(5.2px * var(--sprite-ui-scale,1))!important;font-size:calc(11.8px * var(--sprite-ui-scale,1))!important}
+  .spritepattern input,.spriteoffsetfield input{width:calc(50px * var(--sprite-ui-scale,1))!important;min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;font-size:calc(11.8px * var(--sprite-ui-scale,1))!important}
+  .patternstep{width:calc(23.6px * var(--sprite-ui-scale,1))!important;min-width:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;font-size:calc(13px * var(--sprite-ui-scale,1))!important}
+  .spritevisiblemini{font-size:calc(10.5px * var(--sprite-ui-scale,1))!important}
+  .spritevisiblemini input{width:calc(15.8px * var(--sprite-ui-scale,1))!important;height:calc(15.8px * var(--sprite-ui-scale,1))!important}
+  .spriteoffsetbutton{width:calc(26.2px * var(--sprite-ui-scale,1))!important;min-width:calc(26.2px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;font-size:calc(11.8px * var(--sprite-ui-scale,1))!important}
+  .framenum{font-size:11.8px!important}.framename{font-size:10.5px!important}.framewait{font-size:9.2px!important}.framewait input{font-size:10.5px!important;min-height:22px!important;height:22px!important}
+  .speedarrow{width:29px!important;min-width:29px!important}.playbackspeed{height:26px!important;min-width:46px!important;font-size:10.5px!important}
+}

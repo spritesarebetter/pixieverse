@@ -14,9 +14,15 @@
   const railWidth=(cell,base)=>Math.max(base?34:48,cell*(base?1.15:2.05));
 
   function syncAllSpriteScales(){
-    const cell=cssCell(),size=cssSize();
+    const cell=cssCell(),size=cssSize(),uiScale=C(editorZoom*1.5,.65,1.5);
     stage.style.setProperty('--editor-cell',cell+'px');
+    stage.style.setProperty('--sprite-ui-scale',String(uiScale));
     stage.style.gap=cell+'px';
+    stage.querySelectorAll('.spriteunit').forEach(unit=>{
+      const index=Number(unit.dataset.spriteIndex)||0,total=size+railWidth(cell,index===0);
+      unit.style.width=total+'px';
+      unit.style.setProperty('--sprite-unit-width',total+'px');
+    });
     stage.querySelectorAll('.spritecanvas').forEach(c=>{
       c.style.width=size+'px';
       c.style.height=size+'px';
@@ -46,13 +52,36 @@
     }
     g.strokeStyle='rgba(255,255,255,.12)';g.lineWidth=1;
     for(let x=0;x<=n;x++){g.beginPath();g.moveTo(x*scale+.5,0);g.lineTo(x*scale+.5,c.height);g.stroke()}
-    for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(c.width,y*scale+.5);g.stroke()}
+    for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(0+c.width,y*scale+.5);g.stroke()}
     if(line>=0){g.strokeStyle='rgba(101,215,192,.65)';g.strokeRect(1.5,line*scale+1.5,n*scale-3,Math.max(1,scale-3))}
   }
   function pointFor(c,e){const r=c.getBoundingClientRect();return{x:C(Math.floor((e.clientX-r.left)/r.width*sz()),0,sz()-1),y:C(Math.floor((e.clientY-r.top)/r.height*sz()),0,sz()-1)}}
   function paintLine(s,a,b,v){let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy;for(;;){s.mask[y0][x0]=v;if(x0===x1&&y0===y1)break;const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}}
   function lightRedraw(){drawSprite(editor,layer(),L);if(typeof renderCompositePreview==='function')renderCompositePreview()}
   window.redrawEditorLight=lightRedraw;
+
+  function selectSprite(index,line=0){S=C(index,0,fr().sprites.length-1);L=C(line,0,sz()-1);render()}
+  function setPattern(index,value){const s=fr().sprites[index];if(!s)return;s.pattern=C(Math.round(Number(value)||0),0,255);S=index;dirty();render()}
+  function setOffset(index,axis,value){if(index===0)return;const s=fr().sprites[index];if(!s)return;s[axis]=Math.round(Number(value)||0);S=index;dirty();render()}
+  function moveOffset(index,dx,dy){if(index===0)return;const s=fr().sprites[index];if(!s)return;s.ox=Math.round(Number(s.ox)||0)+dx;s.oy=Math.round(Number(s.oy)||0)+dy;S=index;dirty();render()}
+  function setVisible(index,value){const s=fr().sprites[index];if(!s)return;s.visible=!!value;S=index;dirty();render()}
+
+  function buildHeader(index,s){
+    const origin=index===0,head=document.createElement('div');head.className='spriteunithead';
+    const top=document.createElement('div');top.className='spriteunitheadrow spriteunitidentity';
+    const select=document.createElement('button');select.type='button';select.className='spriteselect'+(index===S?' on':'');select.textContent='Sprite #'+index;select.title=origin?'Sprite #0 · object origin':'Select Sprite #'+index;select.onclick=e=>{e.stopPropagation();selectSprite(index,L)};
+    const pattern=document.createElement('label');pattern.className='spritepattern';pattern.innerHTML='<span>Pattern</span>';
+    const patternInput=document.createElement('input');patternInput.type='number';patternInput.min='0';patternInput.max='255';patternInput.step='1';patternInput.value=String(s.pattern);patternInput.title='Pattern number';patternInput.onclick=e=>e.stopPropagation();patternInput.onpointerdown=e=>e.stopPropagation();patternInput.onchange=e=>{e.stopPropagation();setPattern(index,e.target.value)};pattern.appendChild(patternInput);
+    const visible=document.createElement('label');visible.className='spritevisiblemini';visible.title='Sprite visible';const vis=document.createElement('input');vis.type='checkbox';vis.checked=s.visible;vis.onclick=e=>e.stopPropagation();vis.onchange=e=>{e.stopPropagation();setVisible(index,e.target.checked)};visible.append(vis,document.createTextNode(' visible'));
+    top.append(select,pattern,visible);
+
+    const pos=document.createElement('div');pos.className='spriteunitheadrow spriteoffsetrow';
+    const x=document.createElement('label');x.className='spriteoffsetfield';x.innerHTML='<span>X</span>';const xi=document.createElement('input');xi.type='number';xi.value=String(origin?0:s.ox);xi.disabled=origin;xi.title=origin?'Sprite #0 is the origin':'X offset relative to Sprite #0';xi.onclick=e=>e.stopPropagation();xi.onpointerdown=e=>e.stopPropagation();xi.onchange=e=>{e.stopPropagation();setOffset(index,'ox',e.target.value)};x.appendChild(xi);
+    const y=document.createElement('label');y.className='spriteoffsetfield';y.innerHTML='<span>Y</span>';const yi=document.createElement('input');yi.type='number';yi.value=String(origin?0:s.oy);yi.disabled=origin;yi.title=origin?'Sprite #0 is the origin':'Y offset relative to Sprite #0';yi.onclick=e=>e.stopPropagation();yi.onpointerdown=e=>e.stopPropagation();yi.onchange=e=>{e.stopPropagation();setOffset(index,'oy',e.target.value)};y.appendChild(yi);
+    pos.append(x,y);
+    [['←',-1,0],['→',1,0],['↑',0,-1],['↓',0,1]].forEach(([label,dx,dy])=>{const b=document.createElement('button');b.type='button';b.className='spriteoffsetbutton';b.textContent=label;b.disabled=origin;b.title=origin?'Sprite #0 is fixed':'Move sprite offset';b.onclick=e=>{e.stopPropagation();moveOffset(index,dx,dy)};pos.appendChild(b)});
+    head.append(top,pos);return head;
+  }
 
   function buildRail(rail,s,index,selected){
     const base=index===0;rail.className='spritecolorrail'+(base?' base':'');rail.innerHTML='';
@@ -81,16 +110,16 @@
     ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>editor.addEventListener(ev,e=>endStroke(editor,e),true));
   }
   function wireTemporary(c,index,s){
-    c.oncontextmenu=e=>e.preventDefault();c.title=(index===0?'Origin sprite':'Sprite '+index)+' · click to select/edit';
+    c.oncontextmenu=e=>e.preventDefault();c.title='Sprite #'+index+' · click to select/edit';
     c.addEventListener('pointerdown',e=>startStroke(c,index,s,e),true);c.addEventListener('pointermove',e=>moveStroke(c,e),true);
     ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>c.addEventListener(ev,e=>endStroke(c,e),true));
   }
   function makeUnit(index,s){
-    const unit=document.createElement('div');unit.className='spriteunit'+(index===S?' selected':'');unit.dataset.spriteIndex=String(index);unit.title=index===0?'Origin sprite':'Sprite '+index;
-    const body=document.createElement('div');body.className='spritebody';
-    if(index===S){editor.className='artboardshadow spritecanvas';editor.title=index===0?'Origin sprite':'Sprite '+index;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wireSelected()}
+    const unit=document.createElement('div');unit.className='spriteunit'+(index===S?' selected':'');unit.dataset.spriteIndex=String(index);
+    const head=buildHeader(index,s),body=document.createElement('div');body.className='spritebody';
+    if(index===S){editor.className='artboardshadow spritecanvas';editor.title='Sprite #'+index;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wireSelected()}
     else{const c=document.createElement('canvas');c.className='artboardshadow spritecanvas';drawSprite(c,s,-1);wireTemporary(c,index,s);const rail=document.createElement('div');buildRail(rail,s,index,false);body.append(c,rail)}
-    unit.append(body);return unit;
+    unit.append(head,body);return unit;
   }
 
   drawEditor=function(){editor.remove();selectedRail.remove();stage.innerHTML='';fr().sprites.forEach((s,i)=>stage.appendChild(makeUnit(i,s)));syncAllSpriteScales();if(typeof renderCompositePreview==='function')renderCompositePreview()};

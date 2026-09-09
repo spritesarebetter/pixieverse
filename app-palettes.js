@@ -12,6 +12,7 @@
   function markClean(){baselineName=String(P.paletteName||'Palette');baselinePalette=paletteJson()}
   function isDirty(){return String(P.paletteName||'Palette')!==baselineName||paletteJson()!==baselinePalette}
   function presetEntry(key){const preset=PALETTE_PRESETS[key],override=readOverrides()[key];if(!preset)return null;return{name:String(override?.name||preset.label),palette:normalizePalette(override?.palette||presetRgb3(key))}}
+  function dataForRef(ref){if(ref.startsWith('preset:'))return presetEntry(ref.slice(7));if(ref.startsWith('saved:')){const p=readSaved().find(x=>x.id===ref.slice(6));return p?{name:p.name,palette:normalizePalette(p.palette)}:null}return null}
   function option(value,label,group){const o=document.createElement('option');o.value=value;o.textContent=label;group.appendChild(o)}
   function normalizePreferred(value){if(!value)return'';if(value.startsWith('preset:')||value.startsWith('saved:')||value==='current')return value;if(PALETTE_PRESETS[value])return'preset:'+value;return''}
   function detectRef(){
@@ -29,7 +30,11 @@
     $('deletePaletteLocal').disabled=!activeRef.startsWith('saved:');
   }
   window.refreshPaletteFileMenu=function(preferred=''){
-    activeRef=normalizePreferred(preferred)||detectRef();
+    const pref=normalizePreferred(preferred);
+    activeRef=pref||detectRef();
+    if(pref&&pref!=='current'){
+      const data=dataForRef(pref);if(data){P.palette=clone(data.palette);P.paletteName=data.name;refreshPaletteCache();render()}
+    }
     markClean();buildMenu();
   };
 
@@ -56,11 +61,8 @@
     alert('Please enter “tool”, “gpl”, or “no”.');return false;
   }
   function applyRef(ref){
-    let name,pal;
-    if(ref.startsWith('preset:')){const p=presetEntry(ref.slice(7));if(!p)return false;name=p.name;pal=p.palette}
-    else if(ref.startsWith('saved:')){const p=readSaved().find(x=>x.id===ref.slice(6));if(!p)return false;name=p.name;pal=normalizePalette(p.palette)}
-    else return false;
-    P.palette=clone(pal);P.paletteName=name;activeRef=ref;refreshPaletteCache();dirty();render();markClean();buildMenu();setStatus('Palette: '+name);return true;
+    const data=dataForRef(ref);if(!data)return false;
+    P.palette=clone(data.palette);P.paletteName=data.name;activeRef=ref;refreshPaletteCache();dirty();render();markClean();buildMenu();setStatus('Palette: '+data.name);return true;
   }
   function deletePalette(){
     if(!activeRef.startsWith('saved:'))return;

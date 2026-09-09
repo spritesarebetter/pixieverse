@@ -81,15 +81,16 @@
     ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>editor.addEventListener(ev,e=>endStroke(editor,e),true));
   }
   function wireTemporary(c,index,s){
-    c.oncontextmenu=e=>e.preventDefault();c.title=s.name+' · click to select/edit';
+    c.oncontextmenu=e=>e.preventDefault();c.title=(index===0?'Origin sprite':'Sprite '+index)+' · click to select/edit';
     c.addEventListener('pointerdown',e=>startStroke(c,index,s,e),true);c.addEventListener('pointermove',e=>moveStroke(c,e),true);
     ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>c.addEventListener(ev,e=>endStroke(c,e),true));
   }
   function makeUnit(index,s){
-    const unit=document.createElement('div');unit.className='spriteunit'+(index===S?' selected':'');const title=document.createElement('div');title.className='spritetitle';title.textContent=s.name;title.title=s.name;const body=document.createElement('div');body.className='spritebody';
-    if(index===S){editor.className='artboardshadow spritecanvas';editor.title=s.name;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wireSelected()}
+    const unit=document.createElement('div');unit.className='spriteunit'+(index===S?' selected':'');unit.dataset.spriteIndex=String(index);unit.title=index===0?'Origin sprite':'Sprite '+index;
+    const body=document.createElement('div');body.className='spritebody';
+    if(index===S){editor.className='artboardshadow spritecanvas';editor.title=index===0?'Origin sprite':'Sprite '+index;buildRail(selectedRail,s,index,true);body.append(editor,selectedRail);drawSprite(editor,s,L);wireSelected()}
     else{const c=document.createElement('canvas');c.className='artboardshadow spritecanvas';drawSprite(c,s,-1);wireTemporary(c,index,s);const rail=document.createElement('div');buildRail(rail,s,index,false);body.append(c,rail)}
-    unit.append(title,body);return unit;
+    unit.append(body);return unit;
   }
 
   drawEditor=function(){editor.remove();selectedRail.remove();stage.innerHTML='';fr().sprites.forEach((s,i)=>stage.appendChild(makeUnit(i,s)));syncAllSpriteScales();if(typeof renderCompositePreview==='function')renderCompositePreview()};

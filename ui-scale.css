@@ -1,3 +1,8 @@
+/* Sprite rail labels sit in reserved space above each sprite instead of over the bitmap. */
+.spritebody{position:relative;margin-top:calc(19px * var(--sprite-ui-scale,1))}
+.spritecolorrail .colorlabels{top:calc(-18px * var(--sprite-ui-scale,1))!important;height:calc(17px * var(--sprite-ui-scale,1));display:grid!important;grid-template-columns:minmax(0,1fr) minmax(18px,.42fr)!important;gap:calc(var(--editor-cell,30px)*.08);align-items:end!important;padding:0 calc(var(--editor-cell,30px)*.07)!important;box-sizing:border-box;text-align:center;white-space:nowrap;line-height:1}
+.spritecolorrail.base .colorlabels{grid-template-columns:1fr!important;text-align:center!important}
+
 /* Match the control/text size of the 125% browser-zoom reference without scaling artwork canvases. */
 @media (pointer:fine){
   header{height:38px!important;min-height:38px!important;padding:3px 10px!important;gap:8px!important}

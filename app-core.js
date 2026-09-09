@@ -53,25 +53,15 @@ function clampSelection(){F=C(F,0,P.frames.length-1);S=C(S,0,fr().sprites.length
 function render(){clampSelection();refreshPaletteCache();renderFrames();renderLayers();props();lineTable();palette();drawEditor();warnings()}
 function renderFrames(){let h=$('frames');h.innerHTML='';P.frames.forEach((f,i)=>{let d=document.createElement('div');d.className='item'+(i===F?' sel':'');d.textContent=i+' · '+f.name;d.onclick=()=>{F=i;S=0;L=0;render()};h.appendChild(d)});$('delFrame').disabled=P.frames.length<=1}
 function renderLayers(){
-  const h=$('layers');h.innerHTML='';
-  fr().sprites.forEach((s,i)=>{
-    const d=document.createElement('div');d.className='item'+(i===S?' sel':'');
-    const r=document.createElement('div');r.className='itemrow spriteitemrow';
-    const eye=document.createElement('button');eye.className='eye';eye.textContent=s.visible?'●':'○';eye.title=s.visible?'Hide sprite':'Show sprite';eye.onclick=e=>{e.stopPropagation();s.visible=!s.visible;dirty();render()};
-    const n=document.createElement('div');n.className='spritename';n.contentEditable='true';n.spellcheck=false;n.textContent=s.name;n.title='Click to rename';
-    n.onclick=e=>{e.stopPropagation();S=i;L=0;n.focus()};
-    n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}else if(e.key==='Escape'){e.preventDefault();n.textContent=s.name;n.blur()}};
-    n.onblur=()=>{const next=n.textContent.replace(/\s+/g,' ').trim().slice(0,64)||('Sprite '+i);if(next!==s.name){s.name=next;dirty()}render()};
-    const tag=document.createElement('span');tag.className='badge';tag.textContent=i===0?'ORIGIN':'';
-    r.append(eye,n,tag);d.appendChild(r);d.onclick=()=>{S=i;L=0;render()};h.appendChild(d);
-  });
-  $('addLayer').disabled=fr().sprites.length>=32;
+  const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32;
+  const badge=$('selectedSpriteIndex');if(badge)badge.textContent=S===0?'#0 · origin':'#'+S;
 }
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}
 function signed(v){return v>=0?'+'+v:String(v)}
 function props(){
   const s=layer(),origin=S===0,lastSprite=S>=fr().sprites.length-1;
   $('pattern').value=s.pattern;$('layerX').value=s.ox;$('layerY').value=s.oy;$('visible').checked=s.visible;$('title').textContent='Sprite editor';
+  const badge=$('selectedSpriteIndex');if(badge)badge.textContent=origin?'#0 · origin':'#'+S;
   $('layerX').disabled=origin;$('layerY').disabled=origin;['moveL','moveR','moveU','moveD'].forEach(id=>$(id).disabled=origin);
   $('layerDel').disabled=origin||fr().sprites.length<=1;
   $('layerUp').disabled=S<=1;

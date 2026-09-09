@@ -1,3 +1,0 @@
-/* Frames and compact palette utilities */
-.mid{display:block;min-width:0;overflow:hidden}.editorpanel{display:flex;flex-direction:column;min-height:0;height:100%;overflow:hidden}
-.frameitem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}.framewait{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu)}.framewait input{width:54px;background:#10141b;color:var(--tx);border:1px solid var(--ln);border-radius:4px;padding:3px 4px}

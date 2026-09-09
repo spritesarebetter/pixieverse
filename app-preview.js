@@ -2,6 +2,7 @@
 (() => {
   const canvas=$('previewCanvas'),wrap=$('previewWrap');
   let zoom=1,showBorders=true,overrideFrame=null,scheduled=0,pendingFrame=null;
+  let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
   const signedX=(s,index)=>index===0?0:Math.round(Number(s?.ox)||0);
   const signedY=(s,index)=>index===0?0:Math.round(Number(s?.oy)||0);
 
@@ -49,6 +50,7 @@
   function syncCss(){
     const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),cell=fitCell();
     canvas.style.width=Math.max(1,w*cell)+'px';canvas.style.height=Math.max(1,h*cell)+'px';
+    canvas.style.transform='translate3d('+panX+'px,'+panY+'px,0)';
     $('previewZoom').textContent=Math.round(zoom*100)+'%';
   }
 
@@ -81,6 +83,7 @@
     pendingFrame=frame;if(scheduled)return;
     scheduled=requestAnimationFrame(()=>{scheduled=0;draw(pendingFrame||fr());pendingFrame=null});
   }
+  function stopPan(e){if(!panning)return;panning=false;wrap.classList.remove('panning');try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){} }
 
   window.renderCompositePreview=()=>schedule(overrideFrame||fr());
   window.showPreviewFrame=frame=>{overrideFrame=frame;schedule(frame)};
@@ -90,6 +93,10 @@
   $('previewZoomOut').onclick=()=>{zoom=C(Math.round((zoom-.1)*10)/10,.1,8);syncCss()};
   $('previewBorders').onclick=()=>{showBorders=!showBorders;$('previewBorders').classList.toggle('on',showBorders);$('previewBorders').setAttribute('aria-pressed',String(showBorders));schedule(overrideFrame||fr())};
   wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
+  wrap.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.setPointerCapture?.(e.pointerId)});
+  wrap.addEventListener('pointermove',e=>{if(!panning)return;e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss()});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,stopPan));
+  wrap.addEventListener('dblclick',e=>{e.preventDefault();panX=panY=0;syncCss()});
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(syncCss).observe(wrap);else window.addEventListener('resize',syncCss);
   draw();
 })();

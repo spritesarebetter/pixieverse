@@ -2,7 +2,7 @@
 (() => {
   const WAIT_MAX=9999,TICK_MS=1000/60,wait=f=>C(Math.round(Number(f?.wait)||6),1,WAIT_MAX);
   let playing=false,playIndex=0,ticksLeft=0,raf=0,last=0,accum=0,dragIndex=-1,speedPercent=100;
-  const ox=(s,i)=>i===0?0:Math.round(Number(s?.ox)||0),oy=(s,i)=>i===0?0:Math.round(Number(s?.oy)||0);
+  const ox=(s,i)=>spriteOffsetX(s,i),oy=(s,i)=>spriteOffsetY(s,i);
 
   function frameBounds(frame){
     const n=sz();let minX=0,minY=0,maxX=n,maxY=n;
@@ -10,17 +10,8 @@
     return{minX,minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
   function compose(frame,b){
-    const cells=new Int16Array(b.w*b.h);cells.fill(-1);const n=sz();
-    frame.sprites.forEach((s,i)=>{
-      if(!s.visible)return;const bx=ox(s,i)-b.minX,by=oy(s,i)-b.minY;
-      for(let y=0;y<n;y++){
-        const a=s.lines[y];
-        for(let x=0;x<n;x++){
-          const col=s.mask[y][x]?a.color:0;if(s.transparent&&col===0)continue;const px=bx+x,py=by+y;if(px<0||py<0||px>=b.w||py>=b.h)continue;
-          const p=py*b.w+px,cur=cells[p];if(i>0&&a.or&&cur>=0)cells[p]=(cur|col)&15;else if(cur<0)cells[p]=col;
-        }
-      }
-    });
+    const cells=new Int16Array(b.w*b.h);cells.fill(-1);
+    for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++)cells[y*b.w+x]=spriteMode2ColorAt(frame,b.minX+x,b.minY+y);
     return cells;
   }
   function drawThumbnail(canvas,frame){

@@ -17,8 +17,9 @@ $('left').onclick=()=>shiftBitmap(-1,0);$('right').onclick=()=>shiftBitmap(1,0);
 $('flipH').onclick=()=>flip(true);$('flipV').onclick=()=>flip(false);
 $('invert').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]^=1;dirty();render()};
 $('clear').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]=0;dirty();render()};
-$('clearSprite').onclick=()=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++)layer().mask[y][x]=0;dirty();render();setStatus('Sprite cleared')};
+$('clearSprite').onclick=()=>{for(let y=0;y<16;y++){layer().lines[y].color=0;layer().lines[y].or=false;for(let x=0;x<16;x++)layer().mask[y][x]=0}dirty();render();setStatus('Sprite cleared to Color 0')};
 $('expPat').onclick=()=>dl(patBytes(),'patterns.bin');$('expCol').onclick=()=>dl(colBytes(),'colors.bin');$('expSat').onclick=()=>dl(satBytes(),'sat.bin');$('expPal').onclick=()=>dl(paletteBytes(),'palette.bin');
 $('expAsm').onclick=()=>{let arr=[...patBytes()],txt='; Pixieverse Sprite Mode 2\nsprite_patterns:\n'+arr.map((v,i)=>(i%16?'':'\n  db ')+'$'+v.toString(16).padStart(2,'0')).join(',').replace(/,\n/g,'\n');dl(txt,'sprites.asm','text/plain')};
 window.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;let k=e.key.toLowerCase();if(k==='p')toolset('pencil');if(k==='e')toolset('eraser');if(k==='+'||k==='=')changeEditorZoom(1);if(k==='-'||k==='_')changeEditorZoom(-1)});
-try{const saved=localStorage.getItem(STORAGE_KEY);if(!saved)throw 0;P=parseProject(JSON.parse(saved));render();setStatus('Restored autosave')}catch(e){try{localStorage.removeItem(STORAGE_KEY)}catch(_){}defaultProject();render();setStatus('Ready')}
+try{localStorage.removeItem('pixieverse')}catch(_){}
+try{const saved=localStorage.getItem(STORAGE_KEY);if(!saved)throw 0;P=parseProject(JSON.parse(saved));render();setStatus('Restored autosave')}catch(e){try{localStorage.removeItem(STORAGE_KEY)}catch(_){}defaultProject();render();setStatus('Ready · fresh Color 0 project')}

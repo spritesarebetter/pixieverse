@@ -14,7 +14,7 @@
     frame.sprites.forEach((s,i)=>{
       if(!s.visible)return;const bx=ox(s,i)-b.minX,by=oy(s,i)-b.minY;
       for(let y=0;y<n;y++){
-        const a=s.lines[y];if(!a.color)continue;
+        const a=s.lines[y];if(s.transparent&&a.color===0)continue;
         for(let x=0;x<n;x++){
           if(!s.mask[y][x])continue;const px=bx+x,py=by+y;if(px<0||py<0||px>=b.w||py>=b.h)continue;
           const p=py*b.w+px,cur=cells[p];if(i>0&&a.or){if(cur>=0)cells[p]=(cur|a.color)&15}else if(cur<0)cells[p]=a.color;

@@ -5,7 +5,7 @@ $('loadFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{P=pa
 $('addFrame').onclick=()=>{P.frames.push(clone(fr()));F=P.frames.length-1;fr().name='Frame '+F;S=0;L=0;dirty();render()};
 $('dupFrame').onclick=()=>{let f=clone(fr());f.name=fr().name+' copy';P.frames.splice(F+1,0,f);F++;S=0;L=0;dirty();render()};
 $('delFrame').onclick=()=>{if(P.frames.length>1){P.frames.splice(F,1);F=C(F,0,P.frames.length-1);S=L=0;dirty();render()}};
-$('addLayer').onclick=()=>{if(fr().sprites.length<32){const nextPattern=C(Math.max(...fr().sprites.map(s=>Math.round(Number(s.pattern)||0)))+1,0,255),s=mkLayer(fr().sprites.length);s.pattern=nextPattern;fr().sprites.push(s);S=fr().sprites.length-1;L=0;dirty();render()}};
+$('addLayer').onclick=()=>{if(fr().sprites.length<32){const maxPattern=sz()===16?63:255,nextPattern=C(Math.max(...fr().sprites.map(s=>Math.round(Number(s.pattern)||0)))+1,0,maxPattern),s=mkLayer(fr().sprites.length);s.pattern=nextPattern;fr().sprites.push(s);S=fr().sprites.length-1;L=0;dirty();render()}};
 $('dupLayer').onclick=()=>{if(fr().sprites.length<32){let s=clone(layer());s.name='Sprite '+(S+1);fr().sprites.splice(S+1,0,s);S++;normalizeFrameOrigin(fr());dirty();render()}};
 $('layerDel').onclick=()=>{if(S===0)return;if(fr().sprites.length>1){fr().sprites.splice(S,1);S=C(S,0,fr().sprites.length-1);normalizeFrameOrigin(fr());L=0;dirty();render()}};
 $('layerUp').onclick=()=>{if(S>1){let a=fr().sprites;[a[S-1],a[S]]=[a[S],a[S-1]];S--;normalizeFrameOrigin(fr());dirty();render()}};

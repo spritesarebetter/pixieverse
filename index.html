@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260909o">
-<link rel="stylesheet" href="palette-presets.css?v=20260909o">
-<link rel="stylesheet" href="app-features.css?v=20260909o">
-<link rel="stylesheet" href="responsive.css?v=20260909o">
-<link rel="stylesheet" href="app-editing.css?v=20260909o">
-<link rel="stylesheet" href="layout.css?v=20260909o">
+<link rel="stylesheet" href="styles.css?v=20260909p">
+<link rel="stylesheet" href="palette-presets.css?v=20260909p">
+<link rel="stylesheet" href="app-features.css?v=20260909p">
+<link rel="stylesheet" href="responsive.css?v=20260909p">
+<link rel="stylesheet" href="app-editing.css?v=20260909p">
+<link rel="stylesheet" href="layout.css?v=20260909p">
 </head>
 <body>
 <header>
@@ -17,8 +17,8 @@
   <div class="tools"><span id="status" class="headerstatus" title="Status">Ready</span><button id="new">New</button><button id="save">Save project</button><button id="load">Load project</button><input id="loadFile" type="file" accept=".msxsprite" hidden></div>
 </header>
 <main id="mainLayout">
-  <aside class="panel leftpanel">
-    <section class="sideblock collapsible" data-collapsible>
+  <aside id="previewColumn" class="panel leftpanel">
+    <section id="previewSection" class="sideblock previewsection collapsible" data-collapsible>
       <div class="sectionhead"><h2>Preview</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Preview">▾</button></div>
       <div class="collapsebody">
         <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button></div>
@@ -26,7 +26,9 @@
       </div>
     </section>
 
-    <section class="sideblock collapsible" data-collapsible>
+    <div id="previewHeightSplitter" class="previewheightsplitter" role="separator" aria-orientation="horizontal" aria-label="Resize preview and export panel" tabindex="0"></div>
+
+    <section id="exportSection" class="sideblock exportsection collapsible" data-collapsible>
       <div class="sectionhead"><h2>Export current frame</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Export">▾</button></div>
       <div class="collapsebody"><div class="export"><button id="expPat">patterns.bin</button><button id="expCol">colors.bin</button><button id="expSat">sat.bin</button><button id="expPal">palette.bin</button><button id="expAsm">Z80 .asm</button></div><p id="warn" class="warning"></p></div>
     </section>
@@ -35,16 +37,6 @@
   <div id="mainSplitter" class="mainsplitter" role="separator" aria-orientation="vertical" aria-label="Resize preview and object editor" tabindex="0"></div>
 
   <section class="mid">
-    <div id="paletteBar" class="panel palettebar" aria-label="Palette toolbar">
-      <select id="paletteFileSelect" class="palettechoose" title="Palette"></select>
-      <div id="palette" class="palette paletteinline" aria-label="Palette colors"></div>
-      <div class="palettebaractions">
-        <button id="savePaletteLocal">Save</button><button id="deletePaletteLocal" disabled>Delete</button><button id="renamePaletteLocal">Rename</button><button id="savePaletteFile">Save .gpl</button><button id="loadPaletteFile">Load .gpl</button><button id="restorePaletteDefaults">Restore defaults</button>
-      </div>
-      <div class="palettergbinline" title="Selected color MSX RGB values"><span id="paletteIndex">Color 15</span><label>R<input id="msxR" type="number" min="0" max="7" step="1"></label><label>G<input id="msxG" type="number" min="0" max="7" step="1"></label><label>B<input id="msxB" type="number" min="0" max="7" step="1"></label></div>
-      <input id="paletteFile" type="file" accept=".gpl" hidden>
-    </div>
-
     <div class="panel editorpanel">
       <div class="editorhead">
         <div class="row wrap">
@@ -67,6 +59,16 @@
       <div class="editorwork"><div id="editorWrap" class="editorwrap"><div id="editorStage" class="editorstage"><canvas id="editor" class="artboardshadow spritecanvas" title="Selected sprite"></canvas><div id="spriteColorRail" class="spritecolorrail"><div class="colorlabels"><span>Color</span><span>OR</span></div><div id="lines"></div></div></div></div></div>
     </div>
 
+    <div id="paletteBar" class="panel palettebar" aria-label="Palette toolbar">
+      <select id="paletteFileSelect" class="palettechoose" title="Palette"></select>
+      <div id="palette" class="palette paletteinline" aria-label="Palette colors"></div>
+      <div class="palettebaractions">
+        <button id="savePaletteLocal">Save</button><button id="deletePaletteLocal" disabled>Delete</button><button id="renamePaletteLocal">Rename</button><button id="savePaletteFile">Save .gpl</button><button id="loadPaletteFile">Load .gpl</button><button id="restorePaletteDefaults">Restore defaults</button>
+      </div>
+      <div class="palettergbinline" title="Selected color MSX RGB values"><span id="paletteIndex">Color 15</span><label>R<input id="msxR" type="number" min="0" max="7" step="1"></label><label>G<input id="msxG" type="number" min="0" max="7" step="1"></label><label>B<input id="msxB" type="number" min="0" max="7" step="1"></label></div>
+      <input id="paletteFile" type="file" accept=".gpl" hidden>
+    </div>
+
     <section class="panel timelinepanel collapsible" data-collapsible>
       <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">＋</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
       <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p></div>
@@ -74,6 +76,6 @@
   </section>
 </main>
 
-<script src="app-core.js?v=20260909o"></script><script src="palette-presets.js?v=20260909o"></script><script src="app-canvas.js?v=20260909o"></script><script src="app-ui.js?v=20260909o"></script><script src="app-palettes.js?v=20260909o"></script><script src="app-preview.js?v=20260909o"></script><script src="app-sprites.js?v=20260909o"></script><script src="app-frames.js?v=20260909o"></script><script src="app-editing.js?v=20260909o"></script><script src="app-patterns.js?v=20260909o"></script><script src="app-panels.js?v=20260909o"></script>
+<script src="app-core.js?v=20260909p"></script><script src="palette-presets.js?v=20260909p"></script><script src="app-canvas.js?v=20260909p"></script><script src="app-ui.js?v=20260909p"></script><script src="app-palettes.js?v=20260909p"></script><script src="app-preview.js?v=20260909p"></script><script src="app-sprites.js?v=20260909p"></script><script src="app-frames.js?v=20260909p"></script><script src="app-editing.js?v=20260909p"></script><script src="app-patterns.js?v=20260909p"></script><script src="app-panels.js?v=20260909p"></script>
 </body>
 </html>

@@ -5,15 +5,11 @@ $('loadFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{P=pa
 $('addFrame').onclick=()=>{P.frames.push(clone(fr()));F=P.frames.length-1;fr().name='Frame '+F;S=0;L=0;dirty();render()};
 $('dupFrame').onclick=()=>{let f=clone(fr());f.name=fr().name+' copy';P.frames.splice(F+1,0,f);F++;S=0;L=0;dirty();render()};
 $('delFrame').onclick=()=>{if(P.frames.length>1){P.frames.splice(F,1);F=C(F,0,P.frames.length-1);S=L=0;dirty();render()}};
-$('addLayer').onclick=()=>{if(fr().sprites.length<32){let s=mkLayer(fr().sprites.length);s.pattern=sz()===16?((fr().sprites.length*4)&252):fr().sprites.length;fr().sprites.push(s);S=fr().sprites.length-1;L=0;dirty();render()}};
-$('dupLayer').onclick=()=>{if(fr().sprites.length<32){let s=clone(layer());s.name=layer().name+' copy';s.pattern=sz()===16?((fr().sprites.length*4)&252):fr().sprites.length;fr().sprites.splice(S+1,0,s);S++;normalizeFrameOrigin(fr());dirty();render()}};
+$('addLayer').onclick=()=>{if(fr().sprites.length<32){const nextPattern=C(Math.max(...fr().sprites.map(s=>Math.round(Number(s.pattern)||0)))+1,0,255),s=mkLayer(fr().sprites.length);s.pattern=nextPattern;fr().sprites.push(s);S=fr().sprites.length-1;L=0;dirty();render()}};
+$('dupLayer').onclick=()=>{if(fr().sprites.length<32){let s=clone(layer());s.name='Sprite '+(S+1);fr().sprites.splice(S+1,0,s);S++;normalizeFrameOrigin(fr());dirty();render()}};
 $('layerDel').onclick=()=>{if(S===0)return;if(fr().sprites.length>1){fr().sprites.splice(S,1);S=C(S,0,fr().sprites.length-1);normalizeFrameOrigin(fr());L=0;dirty();render()}};
 $('layerUp').onclick=()=>{if(S>1){let a=fr().sprites;[a[S-1],a[S]]=[a[S],a[S-1]];S--;normalizeFrameOrigin(fr());dirty();render()}};
 $('layerDown').onclick=()=>{let a=fr().sprites;if(S>0&&S<a.length-1){[a[S+1],a[S]]=[a[S],a[S+1]];S++;normalizeFrameOrigin(fr());dirty();render()}};
-$('pattern').oninput=e=>{layer().pattern=+e.target.value||0;dirty();renderLayers();drawEditor();props()};
-$('layerX').oninput=e=>{if(S===0)return;layer().ox=Math.round(Number(e.target.value)||0);dirty();renderLayers();drawEditor();props()};
-$('layerY').oninput=e=>{if(S===0)return;layer().oy=Math.round(Number(e.target.value)||0);dirty();renderLayers();drawEditor();props()};
-$('visible').onchange=e=>{layer().visible=e.target.checked;dirty();render()};
 $('editorZoomOut').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(-1)});$('editorZoomIn').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(1)});
 $('editorWrap').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();changeEditorZoom(e.deltaY<0?1:-1)},{passive:false});
 $('paletteName').oninput=e=>{P.paletteName=e.target.value;dirty()};
@@ -23,8 +19,6 @@ $('paletteFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{a
 [['palR',0],['palG',1],['palB',2]].forEach(([id,c])=>$(id).oninput=e=>setPaletteComponent8(c,e.target.value));
 $('pencil').onclick=()=>toolset('pencil');$('eraser').onclick=()=>toolset('eraser');
 $('left').onclick=()=>shiftBitmap(-1,0);$('right').onclick=()=>shiftBitmap(1,0);$('up').onclick=()=>shiftBitmap(0,-1);$('down').onclick=()=>shiftBitmap(0,1);
-function moveSelectedSprite(dx,dy){if(S===0)return;layer().ox+=dx;layer().oy+=dy;dirty();render()}
-$('moveL').onclick=()=>moveSelectedSprite(-1,0);$('moveR').onclick=()=>moveSelectedSprite(1,0);$('moveU').onclick=()=>moveSelectedSprite(0,-1);$('moveD').onclick=()=>moveSelectedSprite(0,1);
 $('flipH').onclick=()=>flip(true);$('flipV').onclick=()=>flip(false);
 $('invert').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]^=1;dirty();render()};
 $('clear').onclick=()=>{for(let y=0;y<sz();y++)for(let x=0;x<sz();x++)layer().mask[y][x]=0;dirty();render()};

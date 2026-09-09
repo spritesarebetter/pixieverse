@@ -18,7 +18,7 @@ const rgb8To3=rgb=>Array.from({length:3},(_,i)=>C(Math.round(C(Number(rgb?.[i])|
 const rgb3Hex=rgb=>'#'+rgb8(rgb).map(v=>v.toString(16).padStart(2,'0')).join('');
 function refreshPaletteCache(){PAL=P.palette.map(rgb3Hex)}
 function normalizePalette(pal){if(!Array.isArray(pal)||pal.length!==16)throw new Error('Palette must have 16 colors');return pal.map(normalizeRgb3)}
-function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0,0,maxPattern),visible:true,transparent:true,mask:mask(),lines:attrs()}}
+function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0),0,maxPattern),visible:true,transparent:true,mask:mask(),lines:attrs()}}
 function mkFrame(i){return{name:'Frame '+i,wait:6,sprites:[mkLayer(0)]}}
 function normalizeFrameOrigin(f){
   if(!f?.sprites?.length)return;

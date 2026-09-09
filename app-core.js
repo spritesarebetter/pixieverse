@@ -83,6 +83,6 @@ function updatePaletteEditor(){
   $('msxR').value=rgb[0];$('msxG').value=rgb[1];$('msxB').value=rgb[2];$('palR').value=out[0];$('palG').value=out[1];$('palB').value=out[2];
 }
 function palette(){let h=$('palette');h.innerHTML='';PAL.forEach((c,i)=>{let b=document.createElement('button');b.className='sw'+(layer().lines[L].color===i?' on':'')+(K===i?' editing':'');b.style.background=c;b.title='Color '+i+' · '+c.toUpperCase();b.onclick=()=>{K=i;layer().lines[L].color=i;dirty();render()};h.appendChild(b)});updatePaletteEditor()}
-function setPaletteComponent3(channel,value){P.palette[K][channel]=C(Math.round(Number(value)||0,0,7);refreshPaletteCache();dirty();render()}
+function setPaletteComponent3(channel,value){P.palette[K][channel]=C(Math.round(Number(value)||0),0,7);refreshPaletteCache();dirty();render()}
 function setPaletteComponent8(channel,value){const out=rgb8(P.palette[K]);out[channel]=C(Math.round(Number(value)||0),0,255);P.palette[K]=rgb8To3(out);refreshPaletteCache();dirty();render()}
 function lineTable(){L=C(L,0,sz()-1)}

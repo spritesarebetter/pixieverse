@@ -11,14 +11,14 @@ const $=id=>document.getElementById(id),C=(v,a,b)=>Math.max(a,Math.min(b,v)),clo
 let P,F=0,S=0,L=0,K=15,drag=false,tool='pencil',last=null,previewScale=1,editorCell=24;
 
 const mask=()=>Array.from({length:16},()=>Array(16).fill(0));
-const attrs=()=>Array.from({length:16},(_,i)=>({color:i<3?15:i<8?6:i<13?8:4,or:false}));
+const attrs=()=>Array.from({length:16},()=>({color:0,or:false}));
 const normalizeRgb3=rgb=>Array.from({length:3},(_,i)=>C(Math.round(Number(rgb?.[i])||0),0,7));
 const rgb8=rgb=>rgb.map(v=>Math.round(C(v,0,7)*255/7));
 const rgb8To3=rgb=>Array.from({length:3},(_,i)=>C(Math.round(C(Number(rgb?.[i])||0,0,255)*7/255),0,7));
 const rgb3Hex=rgb=>'#'+rgb8(rgb).map(v=>v.toString(16).padStart(2,'0')).join('');
 function refreshPaletteCache(){PAL=P.palette.map(rgb3Hex)}
 function normalizePalette(pal){if(!Array.isArray(pal)||pal.length!==16)throw new Error('Palette must have 16 colors');return pal.map(normalizeRgb3)}
-function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0),0,maxPattern),visible:true,mask:mask(),lines:attrs()}}
+function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0),0,maxPattern),visible:true,transparent:true,mask:mask(),lines:attrs()}}
 function mkFrame(i){return{name:'Frame '+i,wait:6,sprites:[mkLayer(0)]}}
 function normalizeFrameOrigin(f){
   if(!f?.sprites?.length)return;
@@ -39,7 +39,7 @@ function parseProject(raw){
       if(!s||!Array.isArray(s.mask)||s.mask.length!==16||!Array.isArray(s.lines)||s.lines.length!==16)throw new Error('Invalid sprite');
       const m=s.mask.map(r=>{if(!Array.isArray(r)||r.length!==16)throw new Error('Invalid mask');return r.map(v=>v?1:0)});
       const lines=s.lines.map(a=>{if(!a||!Number.isFinite(+a.color)||typeof a.or!=='boolean')throw new Error('Invalid color row');return{color:C(Math.round(+a.color),0,15),or:a.or}});
-      return{name:String(s.name||('Sprite '+i)),ox:Math.round(Number(s.ox)||0),oy:Math.round(Number(s.oy)||0),pattern:C(Math.round(Number(s.pattern)||0),0,size===16?63:255),visible:s.visible!==false,mask:m,lines};
+      return{name:String(s.name||('Sprite '+i)),ox:Math.round(Number(s.ox)||0),oy:Math.round(Number(s.oy)||0),pattern:C(Math.round(Number(s.pattern)||0),0,size===16?63:255),visible:s.visible!==false,transparent:s.transparent!==false,mask:m,lines};
     })};
     normalizeFrameOrigin(out);return out;
   });

@@ -1,3 +1,6 @@
+/* Preview must consume the full resizable section height; older editor CSS capped it at 280px. */
+.previewwrap{max-height:none!important;height:auto!important;flex:1 1 auto!important}
+
 /* Sprite rail labels sit in reserved space above each sprite instead of over the bitmap. */
 .spritebody{position:relative;margin-top:calc(19px * var(--sprite-ui-scale,1))}
 .spritecolorrail .colorlabels{top:calc(-18px * var(--sprite-ui-scale,1))!important;height:calc(17px * var(--sprite-ui-scale,1));display:grid!important;grid-template-columns:minmax(0,1fr) minmax(18px,.42fr)!important;gap:calc(var(--editor-cell,30px)*.08);align-items:end!important;padding:0 calc(var(--editor-cell,30px)*.07)!important;box-sizing:border-box;text-align:center;white-space:nowrap;line-height:1}

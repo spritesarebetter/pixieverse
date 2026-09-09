@@ -18,7 +18,7 @@ const rgb8To3=rgb=>Array.from({length:3},(_,i)=>C(Math.round(C(Number(rgb?.[i])|
 const rgb3Hex=rgb=>'#'+rgb8(rgb).map(v=>v.toString(16).padStart(2,'0')).join('');
 function refreshPaletteCache(){PAL=P.palette.map(rgb3Hex)}
 function normalizePalette(pal){if(!Array.isArray(pal)||pal.length!==16)throw new Error('Palette must have 16 colors');return pal.map(normalizeRgb3)}
-function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0),0,maxPattern),visible:true,transparent:true,mask:mask(),lines:attrs()}}
+function mkLayer(i){const maxPattern=(P?.size||16)===16?63:255;return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0,0,maxPattern),visible:true,transparent:true,mask:mask(),lines:attrs()}}
 function mkFrame(i){return{name:'Frame '+i,wait:6,sprites:[mkLayer(0)]}}
 function normalizeFrameOrigin(f){
   if(!f?.sprites?.length)return;
@@ -53,6 +53,21 @@ function clampSelection(){F=C(F,0,P.frames.length-1);S=C(S,0,fr().sprites.length
 function render(){clampSelection();refreshPaletteCache();renderFrames();renderLayers();props();lineTable();palette();drawEditor();warnings()}
 function renderFrames(){const h=$('frames');h.innerHTML='';P.frames.forEach((f,i)=>{const d=document.createElement('div');d.className='item'+(i===F?' sel':'');d.textContent=i+' · '+f.name;d.onclick=()=>{F=i;S=0;L=0;render()};h.appendChild(d)});$('delFrame').disabled=P.frames.length<=1}
 function renderLayers(){const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32}
+const spriteOffsetX=(s,index)=>index===0?0:Math.round(Number(s?.ox)||0);
+const spriteOffsetY=(s,index)=>index===0?0:Math.round(Number(s?.oy)||0);
+function spriteMode2ColorAt(frame,x,y){
+  let committed=-1,pending=0,hasPending=false;const n=sz();
+  for(let index=frame.sprites.length-1;index>=0;index--){
+    const s=frame.sprites[index];if(!s?.visible)continue;
+    const lx=x-spriteOffsetX(s,index),ly=y-spriteOffsetY(s,index);
+    if(lx<0||ly<0||lx>=n||ly>=n)continue;
+    const a=s.lines[ly],color=s.mask[ly][lx]?a.color:0;
+    if(s.transparent&&color===0)continue;
+    if(index>0&&a.or){pending=(pending|color)&15;hasPending=true}
+    else{committed=((hasPending?pending:0)|color)&15;pending=0;hasPending=false}
+  }
+  return committed;
+}
 function props(){
   const origin=S===0,lastSprite=S>=fr().sprites.length-1;
   const title=$('title');if(title)title.textContent='Object editor';

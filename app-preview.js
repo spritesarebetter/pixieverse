@@ -11,8 +11,9 @@
       minX=Math.min(minX,x);minY=Math.min(minY,y);
       maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);
     });
-    return{minX,minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
+    return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
+
   function compose(frame,b){
     const cells=new Int16Array(b.w*b.h);cells.fill(-1);const n=sz();
     frame.sprites.forEach((s,index)=>{
@@ -30,16 +31,21 @@
     });
     return cells;
   }
+
   function fitCell(){
     const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz();
-    const availW=Math.max(24,wrap.clientWidth-14),availH=Math.max(24,wrap.clientHeight-14);
-    return Math.max(.25,Math.min(availW/w,availH/h))*zoom;
+    const availW=Math.max(24,wrap.clientWidth-12),availH=Math.max(24,wrap.clientHeight-12);
+    // Default preview zoom is always a true fit-to-object. Keep the lower
+    // bound tiny so even the maximum signed-offset composition is not clipped.
+    return Math.max(.05,Math.min(availW/w,availH/h))*zoom;
   }
+
   function syncCss(){
     const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),cell=fitCell();
     canvas.style.width=Math.max(1,w*cell)+'px';canvas.style.height=Math.max(1,h*cell)+'px';
     $('previewZoom').textContent=Math.round(zoom*100)+'%';
   }
+
   function draw(frame=fr()){
     const b=bounds(frame),cell=Math.max(2,Math.min(16,Math.floor(2048/Math.max(b.w,b.h)))),g=canvas.getContext('2d'),cells=compose(frame,b);
     canvas.dataset.gridW=String(b.w);canvas.dataset.gridH=String(b.h);
@@ -64,6 +70,7 @@
     }
     syncCss();
   }
+
   function schedule(frame=overrideFrame||fr()){
     pendingFrame=frame;if(scheduled)return;
     scheduled=requestAnimationFrame(()=>{scheduled=0;draw(pendingFrame||fr());pendingFrame=null});

@@ -5,7 +5,7 @@ const DEFAULT_PALETTE=[
   [6,3,2],[7,4,3],[6,5,3],[6,6,4],
   [2,4,2],[5,3,5],[6,6,6],[7,7,7]
 ];
-const STORAGE_KEY='pixieverse';
+const STORAGE_KEY='pixieverse.project.twocolor.v1';
 let PAL=[];
 const $=id=>document.getElementById(id),C=(v,a,b)=>Math.max(a,Math.min(b,v)),clone=o=>JSON.parse(JSON.stringify(o));
 let P,F=0,S=0,L=0,K=15,drag=false,tool='pencil',last=null,previewScale=1,editorCell=24;

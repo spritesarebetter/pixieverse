@@ -27,8 +27,12 @@
     const input=e.target;
     if(!(input instanceof HTMLInputElement)||!input.matches('.spritepattern input'))return;
     const unit=input.closest('.spriteunit');if(!unit)return;
-    const index=C(Math.round(Number(unit.dataset.spriteIndex)||0),0,fr().sprites.length-1),next=C(Math.round(Number(input.value)||0),0,patternLimit()),existing=findPatternSource(next,F,index);
-    if(existing)fr().sprites[index].mask=clone(existing.mask);
+    e.stopImmediatePropagation();
+    const index=C(Math.round(Number(unit.dataset.spriteIndex)||0),0,fr().sprites.length-1),next=C(Math.round(Number(input.value)||0),0,patternLimit()),s=fr().sprites[index],existing=findPatternSource(next,F,index);
+    if(!s)return;
+    s.pattern=next;
+    if(existing)s.mask=clone(existing.mask);
+    S=index;dirty();render();
   },true);
 
   const baseDirty=dirty;

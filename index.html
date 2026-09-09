@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pixieverse — MSX2 Sprite Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260909i">
-<link rel="stylesheet" href="palette-presets.css?v=20260909i">
-<link rel="stylesheet" href="app-features.css?v=20260909i">
-<link rel="stylesheet" href="responsive.css?v=20260909i">
-<link rel="stylesheet" href="app-editing.css?v=20260909i">
-<link rel="stylesheet" href="layout.css?v=20260909i">
+<title>Pixieverse — MSX2 Object Editor</title>
+<link rel="stylesheet" href="styles.css?v=20260909j">
+<link rel="stylesheet" href="palette-presets.css?v=20260909j">
+<link rel="stylesheet" href="app-features.css?v=20260909j">
+<link rel="stylesheet" href="responsive.css?v=20260909j">
+<link rel="stylesheet" href="app-editing.css?v=20260909j">
+<link rel="stylesheet" href="layout.css?v=20260909j">
 </head>
 <body>
 <header>
@@ -22,7 +22,7 @@
       <div class="sectionhead"><h2>Preview</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Preview">▾</button></div>
       <div class="collapsebody">
         <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button></div>
-        <div id="previewWrap" class="previewwrap"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite sprite preview"></canvas></div>
+        <div id="previewWrap" class="previewwrap"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite object preview"></canvas></div>
       </div>
     </section>
 
@@ -51,7 +51,7 @@
     <div class="panel editorpanel">
       <div class="editorhead">
         <div class="row wrap">
-          <div class="editoridentity"><h2 id="title">Sprite editor</h2><span id="selectedSpriteIndex" class="badge">#0 · origin</span></div>
+          <div class="editoridentity"><h2 id="title">Object editor</h2></div>
           <p id="canvasInfo" hidden></p>
           <div class="tools">
             <label class="spritesizecontrol">Size<select id="spriteSize"><option value="16">16×16</option><option value="8">8×8</option></select></label>
@@ -63,17 +63,8 @@
             <button id="copyPixels" disabled>Copy</button><button id="pastePixels" disabled>Paste</button><button id="left">←</button><button id="right">→</button><button id="up">↑</button><button id="down">↓</button><button id="flipH">Flip H</button><button id="flipV">Flip V</button><button id="invert">Invert</button><button id="clear">Clear</button>
           </div>
         </div>
-        <div class="spriteeditorcontrols">
-          <div class="spriteactions">
-            <button id="addLayer">＋ Sprite</button><button id="dupLayer">Duplicate</button><button id="clearSprite">Clear sprite</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete</button>
-          </div>
-          <div class="spriteprops">
-            <label class="spriteprop">Offset X<input id="layerX" type="number" min="-255" max="255"></label>
-            <label class="spriteprop">Offset Y<input id="layerY" type="number" min="-211" max="211"></label>
-            <div class="offsetcluster"><span class="toolbarlabel">offset</span><button id="moveL">←</button><button id="moveR">→</button><button id="moveU">↑</button><button id="moveD">↓</button></div>
-            <label class="spriteprop">Pattern<input id="pattern" type="number" min="0" max="255"></label>
-            <label class="spriteprop spritevisible">Visible<input id="visible" type="checkbox"></label>
-          </div>
+        <div class="objectactions">
+          <button id="addLayer">＋ Sprite</button><button id="dupLayer">Duplicate sprite</button><button id="clearSprite">Clear sprite</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete sprite</button>
         </div>
       </div>
       <div class="editorwork"><div id="editorWrap" class="editorwrap"><div id="editorStage" class="editorstage"><canvas id="editor" class="artboardshadow spritecanvas" title="Selected sprite"></canvas><div id="spriteColorRail" class="spritecolorrail"><div class="colorlabels"><span>Color</span><span>OR</span></div><div id="lines"></div></div></div></div></div>
@@ -87,6 +78,6 @@
 </main>
 <footer><span>MSX hardware remains the source of truth</span><span id="status">Ready</span></footer>
 
-<script src="app-core.js?v=20260909i"></script><script src="palette-presets.js?v=20260909i"></script><script src="app-canvas.js?v=20260909i"></script><script src="app-ui.js?v=20260909i"></script><script src="app-palettes.js?v=20260909i"></script><script src="app-preview.js?v=20260909i"></script><script src="app-sprites.js?v=20260909i"></script><script src="app-frames.js?v=20260909i"></script><script src="app-editing.js?v=20260909i"></script><script src="app-panels.js?v=20260909i"></script>
+<script src="app-core.js?v=20260909j"></script><script src="palette-presets.js?v=20260909j"></script><script src="app-canvas.js?v=20260909j"></script><script src="app-ui.js?v=20260909j"></script><script src="app-palettes.js?v=20260909j"></script><script src="app-preview.js?v=20260909j"></script><script src="app-sprites.js?v=20260909j"></script><script src="app-frames.js?v=20260909j"></script><script src="app-editing.js?v=20260909j"></script><script src="app-panels.js?v=20260909j"></script>
 </body>
 </html>

@@ -5,12 +5,16 @@
   const offsetX=s=>Math.round(Number(s?.ox)||0),offsetY=s=>Math.round(Number(s?.oy)||0);
 
   function bounds(frame){
-    const n=sz();let minX=0,minY=0,maxX=n,maxY=n;
+    const n=sz(),cx=n/2,cy=n/2;
+    let minX=0,minY=0,maxX=n,maxY=n;
     frame.sprites.forEach(s=>{
       const x=offsetX(s),y=offsetY(s);
       minX=Math.min(minX,x);minY=Math.min(minY,y);
       maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);
     });
+    const halfW=Math.max(cx-minX,maxX-cx,cx),halfH=Math.max(cy-minY,maxY-cy,cy);
+    minX=Math.floor(cx-halfW);maxX=Math.ceil(cx+halfW);
+    minY=Math.floor(cy-halfH);maxY=Math.ceil(cy+halfH);
     return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
 
@@ -35,8 +39,6 @@
   function fitCell(){
     const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz();
     const availW=Math.max(24,wrap.clientWidth-12),availH=Math.max(24,wrap.clientHeight-12);
-    // Default preview zoom is always a true fit-to-object. Keep the lower
-    // bound tiny so even the maximum signed-offset composition is not clipped.
     return Math.max(.05,Math.min(availW/w,availH/h))*zoom;
   }
 

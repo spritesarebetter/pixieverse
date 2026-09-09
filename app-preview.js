@@ -2,28 +2,36 @@
 (() => {
   const canvas=$('previewCanvas'),wrap=$('previewWrap');
   let zoom=1,showBorders=true,overrideFrame=null,scheduled=0,pendingFrame=null;
-  const offsetX=s=>Math.round(Number(s?.ox)||0),offsetY=s=>Math.round(Number(s?.oy)||0);
+  const signedX=(s,index)=>index===0?0:Math.round(Number(s?.ox)||0);
+  const signedY=(s,index)=>index===0?0:Math.round(Number(s?.oy)||0);
 
   function bounds(frame){
-    const n=sz();let minX=0,minY=0,maxX=n,maxY=n;
-    frame.sprites.forEach(s=>{
-      const x=offsetX(s),y=offsetY(s);
+    const n=sz(),cx=n/2,cy=n/2;
+    let minX=0,minY=0,maxX=n,maxY=n;
+    frame.sprites.forEach((s,index)=>{
+      if(index>0&&!s.visible)return;
+      const x=signedX(s,index),y=signedY(s,index);
       minX=Math.min(minX,x);minY=Math.min(minY,y);
       maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);
     });
-    return{minX,minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
+    const halfW=Math.max(cx-minX,maxX-cx,cx),halfH=Math.max(cy-minY,maxY-cy,cy);
+    minX=Math.floor(cx-halfW);maxX=Math.ceil(cx+halfW);
+    minY=Math.floor(cy-halfH);maxY=Math.ceil(cy+halfH);
+    return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
 
   function compose(frame,b){
     const cells=new Int16Array(b.w*b.h);cells.fill(-1);const n=sz();
     frame.sprites.forEach((s,index)=>{
       if(!s.visible)return;
-      const ox=offsetX(s)-b.minX,oy=offsetY(s)-b.minY;
+      const ox=signedX(s,index)-b.minX,oy=signedY(s,index)-b.minY;
       for(let y=0;y<n;y++){
         const a=s.lines[y];if(!a.color)continue;
         for(let x=0;x<n;x++){
           if(!s.mask[y][x])continue;
-          const p=(oy+y)*b.w+ox+x,cur=cells[p];
+          const px=ox+x,py=oy+y;
+          if(px<0||py<0||px>=b.w||py>=b.h)continue;
+          const p=py*b.w+px,cur=cells[p];
           if(index>0&&a.or){if(cur>=0)cells[p]=(cur|a.color)&15}
           else if(cur<0)cells[p]=a.color;
         }
@@ -34,8 +42,8 @@
 
   function fitCell(){
     const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz();
-    const availW=Math.max(24,wrap.clientWidth-14),availH=Math.max(24,wrap.clientHeight-14);
-    return Math.max(.25,Math.min(availW/w,availH/h))*zoom;
+    const availW=Math.max(24,wrap.clientWidth-12),availH=Math.max(24,wrap.clientHeight-12);
+    return Math.max(.05,Math.min(availW/w,availH/h))*zoom;
   }
 
   function syncCss(){
@@ -57,12 +65,12 @@
     for(let x=0;x<=b.w;x++){g.beginPath();g.moveTo(x*cell+.5,0);g.lineTo(x*cell+.5,canvas.height);g.stroke()}
     for(let y=0;y<=b.h;y++){g.beginPath();g.moveTo(0,y*cell+.5);g.lineTo(canvas.width,y*cell+.5);g.stroke()}
     if(showBorders){
-      frame.sprites.forEach((s,i)=>{
+      frame.sprites.forEach((s,index)=>{
         if(!s.visible)return;
-        const x=(offsetX(s)-b.minX)*cell,y=(offsetY(s)-b.minY)*cell;
+        const x=(signedX(s,index)-b.minX)*cell,y=(signedY(s,index)-b.minY)*cell;
         g.save();g.lineWidth=2;
-        g.strokeStyle=i===0?'rgba(101,215,192,.9)':(frame===fr()&&i===S?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)');
-        if(i>0)g.setLineDash([Math.max(3,cell*.25),Math.max(2,cell*.15)]);
+        g.strokeStyle=index===0?'rgba(101,215,192,.9)':(frame===fr()&&index===S?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)');
+        if(index>0)g.setLineDash([Math.max(3,cell*.25),Math.max(2,cell*.15)]);
         g.strokeRect(x+1,y+1,sz()*cell-2,sz()*cell-2);g.restore();
       });
     }

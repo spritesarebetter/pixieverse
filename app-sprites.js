@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const stage=$('editorStage'),editor=$('editor'),selectedRail=$('spriteColorRail'),editorWrap=$('editorWrap');
-  let activeCanvas=null,activeSprite=null,lastPoint=null,eraseStroke=false,strokeChanged=false,lastTapAt=0,lastTapKey='',fitRaf=0;
+  let activeCanvas=null,activeSprite=null,lastPoint=null,eraseStroke=false,strokeChanged=false,lastTapAt=0,lastTapKey='',fitRaf=0,manualZoom=false;
   const DOUBLE_TAP_MS=320;
 
   layerPoint=p=>p;
@@ -40,11 +40,20 @@
   window.syncAllSpriteScales=syncAllSpriteScales;
   const baseApply=applyEditorScale;
   applyEditorScale=function(){baseApply();syncAllSpriteScales();$('editorZoom').textContent=Math.round(editorZoom*100)+'%'};
+  const baseChangeEditorZoom=changeEditorZoom;
+  changeEditorZoom=function(delta){
+    manualZoom=true;
+    if(fitRaf)cancelAnimationFrame(fitRaf);
+    fitRaf=0;
+    baseChangeEditorZoom(delta);
+  };
 
-  function fitObjectEditorSprites(iterations=3){
-    cancelAnimationFrame(fitRaf);
+  function fitObjectEditorSprites(iterations=3,force=false){
+    if(manualZoom&&!force)return;
+    if(fitRaf)cancelAnimationFrame(fitRaf);
     const run=()=>{
       fitRaf=0;
+      if(manualZoom&&!force)return;
       const unit=stage.querySelector('.spriteunit');if(!unit||!editorWrap)return;
       const available=Math.max(80,editorWrap.clientHeight-12),current=unit.getBoundingClientRect().height;
       if(current>0){
@@ -59,6 +68,7 @@
     fitRaf=requestAnimationFrame(run);
   }
   window.fitObjectEditorSprites=fitObjectEditorSprites;
+  window.resetObjectEditorFit=()=>{manualZoom=false;fitObjectEditorSprites(3,true)};
 
   function drawSprite(c,s,line=-1){
     const n=sz(),scale=backingCell(),g=c.getContext('2d');

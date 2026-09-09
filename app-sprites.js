@@ -1,7 +1,7 @@
 'use strict';
 (() => {
-  const stage=$('editorStage'),editor=$('editor'),selectedRail=$('spriteColorRail');
-  let activeCanvas=null,activeSprite=null,lastPoint=null,eraseStroke=false,strokeChanged=false,lastTapAt=0,lastTapKey='';
+  const stage=$('editorStage'),editor=$('editor'),selectedRail=$('spriteColorRail'),editorWrap=$('editorWrap');
+  let activeCanvas=null,activeSprite=null,lastPoint=null,eraseStroke=false,strokeChanged=false,lastTapAt=0,lastTapKey='',fitRaf=0;
   const DOUBLE_TAP_MS=320;
 
   layerPoint=p=>p;
@@ -41,13 +41,33 @@
   const baseApply=applyEditorScale;
   applyEditorScale=function(){baseApply();syncAllSpriteScales();$('editorZoom').textContent=Math.round(editorZoom*100)+'%'};
 
+  function fitObjectEditorSprites(iterations=3){
+    cancelAnimationFrame(fitRaf);
+    const run=()=>{
+      fitRaf=0;
+      const unit=stage.querySelector('.spriteunit');if(!unit||!editorWrap)return;
+      const available=Math.max(80,editorWrap.clientHeight-12),current=unit.getBoundingClientRect().height;
+      if(current>0){
+        const ratio=available/current;
+        if(Math.abs(ratio-1)>.015){
+          editorZoom=C(editorZoom*ratio,.1,8);
+          baseApply();syncAllSpriteScales();
+        }
+      }
+      if(--iterations>0)fitRaf=requestAnimationFrame(run);
+    };
+    fitRaf=requestAnimationFrame(run);
+  }
+  window.fitObjectEditorSprites=fitObjectEditorSprites;
+
   function drawSprite(c,s,line=-1){
     const n=sz(),scale=backingCell(),g=c.getContext('2d');
     c.width=n*scale;c.height=n*scale;editorCell=scale;g.imageSmoothingEnabled=false;
     g.fillStyle='#171b22';g.fillRect(0,0,c.width,c.height);
     for(let y=0;y<n;y++)for(let x=0;x<n;x++){
-      if(s.mask[y][x]&&s.lines[y].color){
-        g.fillStyle=PAL[s.lines[y].color];
+      const a=s.lines[y];
+      if(s.mask[y][x]&&!(s.transparent&&a.color===0)){
+        g.fillStyle=PAL[a.color];
         g.fillRect(x*scale+1,y*scale+1,Math.max(1,scale-2),Math.max(1,scale-2));
       }
     }
@@ -67,18 +87,27 @@
     const s=fr().sprites[index];if(!s)return;const next=C(Math.round(Number(value)||0),0,maxPattern()),existing=fr().sprites.find((peer,i)=>i!==index&&peer.pattern===next);
     s.pattern=next;if(existing)s.mask=clone(existing.mask);S=index;dirty();render();
   }
+  function nudgePattern(index,input,delta){
+    input.value=String(C(Math.round(Number(input.value)||0)+delta,0,maxPattern()));
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+  }
   function setOffset(index,axis,value){if(index===0)return;const s=fr().sprites[index];if(!s)return;s[axis]=Math.round(Number(value)||0);S=index;dirty();render()}
   function moveOffset(index,dx,dy){if(index===0)return;const s=fr().sprites[index];if(!s)return;s.ox=Math.round(Number(s.ox)||0)+dx;s.oy=Math.round(Number(s.oy)||0)+dy;S=index;dirty();render()}
   function setVisible(index,value){const s=fr().sprites[index];if(!s)return;s.visible=!!value;S=index;dirty();render()}
+  function setTransparency(index,value){const s=fr().sprites[index];if(!s)return;s.transparent=!!value;S=index;dirty();render()}
 
   function buildHeader(index,s){
     const origin=index===0,head=document.createElement('div');head.className='spriteunithead';
     const top=document.createElement('div');top.className='spriteunitheadrow spriteunitidentity';
     const select=document.createElement('button');select.type='button';select.className='spriteselect'+(index===S?' on':'');select.textContent='Sprite #'+index;select.title=origin?'Sprite #0 · object origin':'Select Sprite #'+index;select.onclick=e=>{e.stopPropagation();selectSprite(index,L)};
-    const pattern=document.createElement('label');pattern.className='spritepattern';pattern.innerHTML='<span>Pattern</span>';
-    const patternInput=document.createElement('input');patternInput.type='number';patternInput.min='0';patternInput.max=String(maxPattern());patternInput.step='1';patternInput.value=String(s.pattern);patternInput.title='Pattern number';patternInput.onclick=e=>e.stopPropagation();patternInput.onpointerdown=e=>e.stopPropagation();patternInput.onchange=e=>{e.stopPropagation();setPattern(index,e.target.value)};pattern.appendChild(patternInput);
+    const pattern=document.createElement('div');pattern.className='spritepattern';const patternLabel=document.createElement('span');patternLabel.textContent='Pattern';
+    const patternInput=document.createElement('input');patternInput.type='number';patternInput.min='0';patternInput.max=String(maxPattern());patternInput.step='1';patternInput.value=String(s.pattern);patternInput.title='Pattern number';patternInput.onclick=e=>e.stopPropagation();patternInput.onpointerdown=e=>e.stopPropagation();patternInput.onchange=e=>{e.stopPropagation();setPattern(index,e.target.value)};
+    const patternMinus=document.createElement('button');patternMinus.type='button';patternMinus.className='patternstep';patternMinus.textContent='−';patternMinus.title='Previous pattern';patternMinus.disabled=s.pattern<=0;patternMinus.onclick=e=>{e.stopPropagation();nudgePattern(index,patternInput,-1)};
+    const patternPlus=document.createElement('button');patternPlus.type='button';patternPlus.className='patternstep';patternPlus.textContent='+';patternPlus.title='Next pattern';patternPlus.disabled=s.pattern>=maxPattern();patternPlus.onclick=e=>{e.stopPropagation();nudgePattern(index,patternInput,1)};
+    pattern.append(patternLabel,patternInput,patternMinus,patternPlus);
     const visible=document.createElement('label');visible.className='spritevisiblemini';visible.title='Sprite visible';const vis=document.createElement('input');vis.type='checkbox';vis.checked=s.visible;vis.onclick=e=>e.stopPropagation();vis.onchange=e=>{e.stopPropagation();setVisible(index,e.target.checked)};visible.append(vis,document.createTextNode(' visible'));
-    top.append(select,pattern,visible);
+    const transparent=document.createElement('label');transparent.className='spritevisiblemini spritetransparency';transparent.title='When enabled, Color 0 is transparent';const tr=document.createElement('input');tr.type='checkbox';tr.checked=!!s.transparent;tr.onclick=e=>e.stopPropagation();tr.onchange=e=>{e.stopPropagation();setTransparency(index,e.target.checked)};transparent.append(tr,document.createTextNode(' transparency'));
+    top.append(select,pattern,visible,transparent);
 
     const pos=document.createElement('div');pos.className='spriteunitheadrow spriteoffsetrow';
     const x=document.createElement('label');x.className='spriteoffsetfield';x.innerHTML='<span>X</span>';const xi=document.createElement('input');xi.type='number';xi.value=String(origin?0:s.ox);xi.disabled=origin;xi.title=origin?'Sprite #0 is the origin':'X offset relative to Sprite #0';xi.onclick=e=>e.stopPropagation();xi.onpointerdown=e=>e.stopPropagation();xi.onchange=e=>{e.stopPropagation();setOffset(index,'ox',e.target.value)};x.appendChild(xi);
@@ -94,9 +123,9 @@
     const rows=document.createElement('div');rows.className='spriterows';if(selected)rows.id='lines';rail.append(labels,rows);
     for(let y=0;y<sz();y++){
       const a=s.lines[y],r=document.createElement('div');r.className='colorrow'+(base?' basecolorrow':'')+(selected&&y===L?' sel':'');
-      const sw=document.createElement('button');sw.className='linecolorswatch';sw.style.background=PAL[a.color];sw.title='Color '+String(a.color).padStart(2,'0');sw.onclick=e=>{e.stopPropagation();S=index;L=y;K=a.color;render()};r.appendChild(sw);
+      const sw=document.createElement('button');sw.className='linecolorswatch';sw.style.background=PAL[a.color];sw.title='Set line '+y+' to selected Color '+K;sw.onclick=e=>{e.stopPropagation();S=index;L=y;a.color=K;dirty();render()};r.appendChild(sw);
       if(!base){const or=document.createElement('input');or.type='checkbox';or.className='orbox';or.checked=!!a.or;or.title='OR / combine color';or.onclick=e=>e.stopPropagation();or.onchange=()=>{S=index;L=y;a.or=or.checked;dirty();render()};r.appendChild(or)}
-      r.onclick=()=>{S=index;L=y;K=a.color;render()};rows.appendChild(r);
+      r.onclick=()=>{S=index;L=y;render()};rows.appendChild(r);
     }
   }
 
@@ -127,6 +156,7 @@
     unit.append(head,body);return unit;
   }
 
-  drawEditor=function(){editor.remove();selectedRail.remove();stage.innerHTML='';fr().sprites.forEach((s,i)=>stage.appendChild(makeUnit(i,s)));syncAllSpriteScales();if(typeof renderCompositePreview==='function')renderCompositePreview()};
+  drawEditor=function(){editor.remove();selectedRail.remove();stage.innerHTML='';fr().sprites.forEach((s,i)=>stage.appendChild(makeUnit(i,s)));syncAllSpriteScales();fitObjectEditorSprites();if(typeof renderCompositePreview==='function')renderCompositePreview()};
+  if(typeof ResizeObserver!=='undefined'&&editorWrap)new ResizeObserver(()=>fitObjectEditorSprites()).observe(editorWrap);
   render();
 })();

@@ -37,8 +37,8 @@
     const h=$('frames');h.innerHTML='';
     P.frames.forEach((f,i)=>{
       f.wait=wait(f);const d=document.createElement('div');d.className='framebox'+(i===F?' sel':'')+(playing&&i===playIndex?' playing':'');d.draggable=true;d.dataset.index=String(i);
-      const head=document.createElement('div');head.className='framehead';const num=document.createElement('span');num.className='framenum';num.textContent=String(i+1);const name=document.createElement('span');name.className='framename';name.textContent=f.name;name.title=f.name;head.append(num,name);
-      const thumb=document.createElement('canvas');thumb.className='framethumb';thumb.setAttribute('aria-label','Frame '+(i+1)+' thumbnail');drawThumbnail(thumb,f);
+      const head=document.createElement('div');head.className='framehead';const num=document.createElement('span');num.className='framenum';num.textContent=String(i);const name=document.createElement('span');name.className='framename';name.textContent=f.name;name.title=f.name;head.append(num,name);
+      const thumb=document.createElement('canvas');thumb.className='framethumb';thumb.setAttribute('aria-label','Frame '+i+' thumbnail');drawThumbnail(thumb,f);
       const w=document.createElement('label');w.className='framewait';w.innerHTML='<span>wait</span><input type="number" min="1" max="'+WAIT_MAX+'" step="1" value="'+f.wait+'">';
       const input=w.querySelector('input');input.onclick=e=>e.stopPropagation();input.onpointerdown=e=>e.stopPropagation();input.onchange=e=>{e.stopPropagation();f.wait=wait({wait:e.target.value});e.target.value=f.wait;dirty();if(playing&&i===playIndex)ticksLeft=f.wait};
       d.append(head,thumb,w);d.onclick=()=>{F=i;S=0;L=0;render()};

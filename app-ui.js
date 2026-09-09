@@ -12,11 +12,6 @@ $('layerUp').onclick=()=>{if(S>1){let a=fr().sprites;[a[S-1],a[S]]=[a[S],a[S-1]]
 $('layerDown').onclick=()=>{let a=fr().sprites;if(S>0&&S<a.length-1){[a[S+1],a[S]]=[a[S],a[S+1]];S++;normalizeFrameOrigin(fr());dirty();render()}};
 $('editorZoomOut').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(-1)});$('editorZoomIn').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(1)});
 $('editorWrap').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();changeEditorZoom(e.deltaY<0?1:-1)},{passive:false});
-$('paletteName').oninput=e=>{P.paletteName=e.target.value;dirty()};
-$('savePaletteFile').onclick=savePaletteGpl;
-$('paletteFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{await loadPaletteFromFile(f)}catch(err){alert(err.message)}finally{e.target.value=''}};
-[['msxR',0],['msxG',1],['msxB',2]].forEach(([id,c])=>$(id).oninput=e=>setPaletteComponent3(c,e.target.value));
-[['palR',0],['palG',1],['palB',2]].forEach(([id,c])=>$(id).oninput=e=>setPaletteComponent8(c,e.target.value));
 $('pencil').onclick=()=>toolset('pencil');$('eraser').onclick=()=>toolset('eraser');
 $('left').onclick=()=>shiftBitmap(-1,0);$('right').onclick=()=>shiftBitmap(1,0);$('up').onclick=()=>shiftBitmap(0,-1);$('down').onclick=()=>shiftBitmap(0,1);
 $('flipH').onclick=()=>flip(true);$('flipV').onclick=()=>flip(false);

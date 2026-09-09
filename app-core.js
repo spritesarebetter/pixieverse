@@ -56,7 +56,7 @@ function renderLayers(){
   const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32;
   const badge=$('selectedSpriteIndex');if(badge)badge.textContent=S===0?'#0 · origin':'#'+S;
 }
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function signed(v){return v>=0?'+'+v:String(v)}
 function props(){
   const s=layer(),origin=S===0,lastSprite=S>=fr().sprites.length-1;

@@ -8,7 +8,7 @@ const DEFAULT_PALETTE=[
 const STORAGE_KEY='pixieverse.project.twocolor.v1';
 let PAL=[];
 const $=id=>document.getElementById(id),C=(v,a,b)=>Math.max(a,Math.min(b,v)),clone=o=>JSON.parse(JSON.stringify(o));
-let P,F=0,S=0,L=0,K=15,drag=false,tool='pencil',last=null,previewScale=1,editorCell=24;
+let P,F=0,S=0,L=0,K=15,tool='pencil',editorCell=24;
 
 const mask=()=>Array.from({length:16},()=>Array(16).fill(0));
 const attrs=()=>Array.from({length:16},()=>({color:0,or:false}));
@@ -46,15 +46,13 @@ function parseProject(raw){
   return{size,sceneX:Math.round(Number(raw.sceneX)||96),sceneY:Math.round(Number(raw.sceneY)||80),palette,paletteName:String(raw.paletteName||'Palette'),frames};
 }
 function fresh(){defaultProject();dirty(false);render();setStatus('New project')}
-const fr=()=>P.frames[F],layer=()=>fr().sprites[S],sz=()=>+P.size,mg=()=>1,aw=()=>sz(),ah=()=>sz();
+const fr=()=>P.frames[F],layer=()=>fr().sprites[S],sz=()=>+P.size,aw=()=>sz(),ah=()=>sz();
 function setStatus(t){$('status').textContent=t}
 function dirty(save=true){setStatus('Modified');if(save)try{localStorage.setItem(STORAGE_KEY,JSON.stringify(P))}catch(e){}}
 function clampSelection(){F=C(F,0,P.frames.length-1);S=C(S,0,fr().sprites.length-1);L=C(L,0,sz()-1);K=C(K,0,15)}
 function render(){clampSelection();refreshPaletteCache();renderFrames();renderLayers();props();lineTable();palette();drawEditor();warnings()}
-function renderFrames(){let h=$('frames');h.innerHTML='';P.frames.forEach((f,i)=>{let d=document.createElement('div');d.className='item'+(i===F?' sel':'');d.textContent=i+' · '+f.name;d.onclick=()=>{F=i;S=0;L=0;render()};h.appendChild(d)});$('delFrame').disabled=P.frames.length<=1}
+function renderFrames(){const h=$('frames');h.innerHTML='';P.frames.forEach((f,i)=>{const d=document.createElement('div');d.className='item'+(i===F?' sel':'');d.textContent=i+' · '+f.name;d.onclick=()=>{F=i;S=0;L=0;render()};h.appendChild(d)});$('delFrame').disabled=P.frames.length<=1}
 function renderLayers(){const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32}
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function signed(v){return v>=0?'+'+v:String(v)}
 function props(){
   const origin=S===0,lastSprite=S>=fr().sprites.length-1;
   const title=$('title');if(title)title.textContent='Object editor';

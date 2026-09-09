@@ -27,14 +27,15 @@
       if(!s.visible)return;
       const ox=signedX(s,index)-b.minX,oy=signedY(s,index)-b.minY;
       for(let y=0;y<n;y++){
-        const a=s.lines[y];if(s.transparent&&a.color===0)continue;
+        const a=s.lines[y];
         for(let x=0;x<n;x++){
-          if(!s.mask[y][x])continue;
+          const col=s.mask[y][x]?a.color:0;
+          if(s.transparent&&col===0)continue;
           const px=ox+x,py=oy+y;
           if(px<0||py<0||px>=b.w||py>=b.h)continue;
           const p=py*b.w+px,cur=cells[p];
-          if(index>0&&a.or){if(cur>=0)cells[p]=(cur|a.color)&15}
-          else if(cur<0)cells[p]=a.color;
+          if(index>0&&a.or&&cur>=0)cells[p]=(cur|col)&15;
+          else if(cur<0)cells[p]=col;
         }
       }
     });

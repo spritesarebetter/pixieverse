@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260909l">
-<link rel="stylesheet" href="palette-presets.css?v=20260909l">
-<link rel="stylesheet" href="app-features.css?v=20260909l">
-<link rel="stylesheet" href="responsive.css?v=20260909l">
-<link rel="stylesheet" href="app-editing.css?v=20260909l">
-<link rel="stylesheet" href="layout.css?v=20260909l">
+<link rel="stylesheet" href="styles.css?v=20260909m">
+<link rel="stylesheet" href="palette-presets.css?v=20260909m">
+<link rel="stylesheet" href="app-features.css?v=20260909m">
+<link rel="stylesheet" href="responsive.css?v=20260909m">
+<link rel="stylesheet" href="app-editing.css?v=20260909m">
+<link rel="stylesheet" href="layout.css?v=20260909m">
 </head>
 <body>
 <header>
-  <div class="brandline"><h1>Pixieverse</h1><p class="sub">MSX2 / MSX2+ · Sprite Mode 2</p></div>
-  <div class="tools"><button id="new">New</button><button id="save">Save project</button><button id="load">Load project</button><input id="loadFile" type="file" accept=".msxsprite" hidden></div>
+  <div class="brandline"><h1>Pixieverse</h1></div>
+  <div class="tools"><span id="status" class="headerstatus" title="Status">Ready</span><button id="new">New</button><button id="save">Save project</button><button id="load">Load project</button><input id="loadFile" type="file" accept=".msxsprite" hidden></div>
 </header>
 <main>
   <aside class="panel leftpanel">
@@ -71,13 +71,12 @@
     </div>
 
     <section class="panel timelinepanel collapsible" data-collapsible>
-      <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="addFrame">＋</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
+      <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">＋</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
       <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p></div>
     </section>
   </section>
 </main>
-<footer><span>MSX hardware remains the source of truth</span><span id="status">Ready</span></footer>
 
-<script src="app-core.js?v=20260909l"></script><script src="palette-presets.js?v=20260909l"></script><script src="app-canvas.js?v=20260909l"></script><script src="app-ui.js?v=20260909l"></script><script src="app-palettes.js?v=20260909l"></script><script src="app-preview.js?v=20260909l"></script><script src="app-sprites.js?v=20260909l"></script><script src="app-frames.js?v=20260909l"></script><script src="app-editing.js?v=20260909l"></script><script src="app-patterns.js?v=20260909l"></script><script src="app-panels.js?v=20260909l"></script>
+<script src="app-core.js?v=20260909m"></script><script src="palette-presets.js?v=20260909m"></script><script src="app-canvas.js?v=20260909m"></script><script src="app-ui.js?v=20260909m"></script><script src="app-palettes.js?v=20260909m"></script><script src="app-preview.js?v=20260909m"></script><script src="app-sprites.js?v=20260909m"></script><script src="app-frames.js?v=20260909m"></script><script src="app-editing.js?v=20260909m"></script><script src="app-patterns.js?v=20260909m"></script><script src="app-panels.js?v=20260909m"></script>
 </body>
 </html>

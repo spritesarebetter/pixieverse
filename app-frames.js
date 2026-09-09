@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const WAIT_MAX=9999,TICK_MS=1000/60,wait=f=>C(Math.round(Number(f?.wait)||6),1,WAIT_MAX);
-  let playing=false,playIndex=0,ticksLeft=0,raf=0,last=0,accum=0,dragIndex=-1;
+  let playing=false,playIndex=0,ticksLeft=0,raf=0,last=0,accum=0,dragIndex=-1,speedPercent=100;
   const ox=(s,i)=>i===0?0:Math.round(Number(s?.ox)||0),oy=(s,i)=>i===0?0:Math.round(Number(s?.oy)||0);
 
   function frameBounds(frame){
@@ -32,7 +32,13 @@
     g.drawImage(src,0,0,b.w,b.h,dx,dy,dw,dh);
   }
 
-  function updateButtons(){$('playFrames').disabled=playing;$('stopFrames').disabled=!playing;$('delFrame').disabled=P.frames.length<=1}
+  function updateSpeedUi(){
+    const badge=$('playbackSpeed');if(badge)badge.textContent=speedPercent+'%';
+    const slower=$('slowerFrames'),faster=$('fasterFrames');if(slower)slower.disabled=speedPercent<=10;if(faster)faster.disabled=speedPercent>=400;
+  }
+  function updateButtons(){$('playFrames').disabled=playing;$('stopFrames').disabled=!playing;$('delFrame').disabled=P.frames.length<=1;updateSpeedUi()}
+  function changeSpeed(delta){speedPercent=C(speedPercent+delta,10,400);updateSpeedUi();setStatus('Animation speed '+speedPercent+'%')}
+
   renderFrames=function(){
     const h=$('frames');h.innerHTML='';
     P.frames.forEach((f,i)=>{
@@ -54,12 +60,13 @@
 
   function showCurrent(){if(typeof showPreviewFrame==='function')showPreviewFrame(P.frames[playIndex]);renderFrames()}
   function tick(){ticksLeft--;if(ticksLeft<=0){playIndex=(playIndex+1)%P.frames.length;ticksLeft=wait(P.frames[playIndex]);showCurrent()}}
-  function loop(now){if(!playing)return;if(!last)last=now;accum+=Math.min(250,now-last);last=now;while(accum>=TICK_MS){tick();accum-=TICK_MS}raf=requestAnimationFrame(loop)}
-  function play(){if(playing||!P.frames.length)return;playing=true;playIndex=C(F,0,P.frames.length-1);ticksLeft=wait(P.frames[playIndex]);last=accum=0;showCurrent();updateButtons();raf=requestAnimationFrame(loop);setStatus('Animation playing · 60 Hz')}
+  function loop(now){if(!playing)return;if(!last)last=now;accum+=Math.min(250,now-last)*(speedPercent/100);last=now;while(accum>=TICK_MS){tick();accum-=TICK_MS}raf=requestAnimationFrame(loop)}
+  function play(){if(playing||!P.frames.length)return;playing=true;playIndex=C(F,0,P.frames.length-1);ticksLeft=wait(P.frames[playIndex]);last=accum=0;showCurrent();updateButtons();raf=requestAnimationFrame(loop);setStatus('Animation playing · '+speedPercent+'%')}
   function stop(redraw=true){if(raf)cancelAnimationFrame(raf);raf=0;playing=false;last=accum=0;if(typeof clearPreviewFrame==='function')clearPreviewFrame();if(redraw){renderFrames();setStatus('Animation stopped')}updateButtons()}
 
   const baseAdd=$('addFrame').onclick,baseDup=$('dupFrame').onclick,baseDel=$('delFrame').onclick;
   $('addFrame').onclick=()=>{stop(false);baseAdd()};$('dupFrame').onclick=()=>{stop(false);baseDup()};$('delFrame').onclick=()=>{stop(false);baseDel()};
   $('playFrames').onclick=play;$('stopFrames').onclick=()=>stop();
+  $('slowerFrames').onclick=()=>changeSpeed(-10);$('fasterFrames').onclick=()=>changeSpeed(10);
   renderFrames();
 })();

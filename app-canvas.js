@@ -1,26 +1,39 @@
+'use strict';
 const EDITOR_BASE_CELL=30;
 let editorZoom=1;
-function editorRenderScale(){return C(Math.floor(4096/Math.max(aw(),ah())),4,30)}
-function applyEditorScale(){let c=$('editor'),cssCell=EDITOR_BASE_CELL*editorZoom,w=aw()*cssCell,h=ah()*cssCell;c.style.width=w+'px';c.style.height=h+'px';$('editorZoom').textContent=Math.round(editorZoom*100)+'%'}
+
+function applyEditorScale(){
+  const c=$('editor');if(!c)return;
+  const cssCell=EDITOR_BASE_CELL*editorZoom,w=aw()*cssCell,h=ah()*cssCell;
+  c.style.width=w+'px';c.style.height=h+'px';
+  const badge=$('editorZoom');if(badge)badge.textContent=Math.round(editorZoom*100)+'%';
+}
 function changeEditorZoom(delta){editorZoom=C(Math.round((editorZoom+delta*.1)*10)/10,.1,8);applyEditorScale()}
-function artColor(x,y){let color=null;for(let s of fr().sprites){if(!s.visible)continue;let lx=x-s.ox,ly=y-s.oy;if(lx<0||ly<0||lx>=sz()||ly>=sz())continue;let a=s.lines[ly],pixel=s.mask[ly][lx]?a.color:0;if(s.transparent&&pixel===0)continue;if(a.or&&color!==null)color=(color|pixel)&15;else if(color===null)color=pixel}return color}
-function drawEditor(){let c=$('editor'),g=c.getContext('2d'),w=aw(),h=ah();editorCell=editorRenderScale();c.width=w*editorCell;c.height=h*editorCell;for(let y=0;y<h;y++)for(let x=0;x<w;x++){g.fillStyle=(x+y)%2?'#171b22':'#20252d';g.fillRect(x*editorCell,y*editorCell,editorCell,editorCell);let col=artColor(x,y);if(col!==null){g.fillStyle=PAL[col];g.fillRect(x*editorCell+1,y*editorCell+1,editorCell-2,editorCell-2)}}g.strokeStyle='rgba(255,255,255,.09)';g.lineWidth=1;for(let x=0;x<=w;x++){g.beginPath();g.moveTo(x*editorCell+.5,0);g.lineTo(x*editorCell+.5,c.height);g.stroke()}for(let y=0;y<=h;y++){g.beginPath();g.moveTo(0,y*editorCell+.5);g.lineTo(c.width,y*editorCell+.5);g.stroke()}applyEditorScale()}
-function editorPoint(e){let r=$('editor').getBoundingClientRect();return{x:C(Math.floor((e.clientX-r.left)/r.width*aw()),0,aw()-1),y:C(Math.floor((e.clientY-r.top)/r.height*ah()),0,ah()-1)}}
-function layerPoint(p){return{x:p.x-layer().ox,y:p.y-layer().oy}}
+
+/* Lightweight bootstrap renderer. app-sprites.js replaces this with the full object editor renderer. */
+function drawEditor(){
+  const c=$('editor');if(!c)return;
+  const n=sz(),scale=30,g=c.getContext('2d');editorCell=scale;c.width=n*scale;c.height=n*scale;
+  g.fillStyle=PAL[0]||'#000';g.fillRect(0,0,c.width,c.height);
+  g.strokeStyle='rgba(255,255,255,.09)';g.lineWidth=1;
+  for(let x=0;x<=n;x++){g.beginPath();g.moveTo(x*scale+.5,0);g.lineTo(x*scale+.5,c.height);g.stroke()}
+  for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(c.width,y*scale+.5);g.stroke()}
+  applyEditorScale();
+}
+function editorPoint(e){const r=$('editor').getBoundingClientRect();return{x:C(Math.floor((e.clientX-r.left)/r.width*aw()),0,aw()-1),y:C(Math.floor((e.clientY-r.top)/r.height*ah()),0,ah()-1)}}
+function layerPoint(p){return p}
 function inLayer(p){return p.x>=0&&p.y>=0&&p.x<sz()&&p.y<sz()}
-function put(a,b,v){let la=layerPoint(a),lb=layerPoint(b);if(!inLayer(la)&&!inLayer(lb)){setStatus('Outside selected sprite');return}let x0=la.x,y0=la.y,x1=lb.x,y1=lb.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy;for(;;){if(x0>=0&&y0>=0&&x0<sz()&&y0<sz()){layer().mask[y0][x0]=v&&K!==0?1:0;if(v&&K!==0)layer().lines[y0].color=K}if(x0===x1&&y0===y1)break;let e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}dirty()}
 function toolset(t){tool=t;$('pencil').classList.toggle('on',t==='pencil');$('eraser').classList.toggle('on',t==='eraser')}
-let ed=$('editor');ed.oncontextmenu=e=>e.preventDefault();ed.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0&&e.button!==2)return;e.preventDefault();drag=true;let p=editorPoint(e),lp=layerPoint(p);last=p;if(inLayer(lp))L=lp.y;put(p,p,e.button===2||tool==='eraser'?0:1);ed.setPointerCapture?.(e.pointerId);render()});ed.addEventListener('pointermove',e=>{if(!drag)return;e.preventDefault();let p=editorPoint(e),lp=layerPoint(p);put(last,p,tool==='eraser'||(e.pointerType==='mouse'&&(e.buttons&2))?0:1);last=p;if(inLayer(lp))L=lp.y;render()});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>ed.addEventListener(ev,()=>{drag=false;last=null}));
-function shiftBitmap(dx,dy){let n=sz(),m=mask();for(let y=0;y<n;y++)for(let x=0;x<n;x++)m[(y+dy+n)%n][(x+dx+n)%n]=layer().mask[y][x];layer().mask=m;dirty();render()}
-function flip(h){let n=sz(),m=mask();for(let y=0;y<n;y++)for(let x=0;x<n;x++)m[h?y:n-1-y][h?n-1-x:x]=layer().mask[y][x];layer().mask=m;dirty();render()}
-function moveLayer(dx,dy){if(S===0)return;layer().ox+=dx;layer().oy+=dy;dirty();render()}
+function shiftBitmap(dx,dy){const n=sz(),m=mask();for(let y=0;y<n;y++)for(let x=0;x<n;x++)m[(y+dy+n)%n][(x+dx+n)%n]=layer().mask[y][x];layer().mask=m;dirty();render()}
+function flip(horizontal){const n=sz(),m=mask();for(let y=0;y<n;y++)for(let x=0;x<n;x++)m[horizontal?y:n-1-y][horizontal?n-1-x:x]=layer().mask[y][x];layer().mask=m;dirty();render()}
+
 function sx(s){return P.sceneX+s.ox}
 function sy(s){return P.sceneY+s.oy}
 function covers(s,y){return s.visible&&y>=sy(s)&&y<sy(s)+sz()}
 function warnings(){let bad=0;for(let y=0;y<212;y++)if(fr().sprites.filter(s=>covers(s,y)).length>8)bad++;$('warn').textContent=bad?'⚠ '+bad+' scanlines exceed 8 sprites':''}
-function dl(data,name,type='application/octet-stream'){let a=document.createElement('a'),b=data instanceof Blob?data:new Blob([data],{type});a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function dl(data,name,type='application/octet-stream'){const a=document.createElement('a'),b=data instanceof Blob?data:new Blob([data],{type});a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 function patternBase(s){const p=Math.round(Number(s?.pattern)||0);return sz()===16?C(p,0,63)*4:C(p,0,255)}
-function patBytes(){let out=new Uint8Array(2048);for(let s of fr().sprites){let p=patternBase(s);if(sz()===8){for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[y][x]<<(7-x);out[p*8+y]=b}}else{let q=[[0,0],[0,8],[8,0],[8,8]];q.forEach(([ox,oy],qi)=>{for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[oy+y][ox+x]<<(7-x);out[(p+qi)*8+y]=b}})}}return out}
-function colBytes(){let o=new Uint8Array(512);fr().sprites.slice(0,32).forEach((s,i)=>{for(let y=0;y<16;y++){let a=s.lines[y],b=a.color&15;if(a.or)b|=64;o[i*16+y]=b}});return o}
-function satBytes(){let o=new Uint8Array(128);fr().sprites.slice(0,32).forEach((s,i)=>{o[i*4]=(sy(s)-1)&255;o[i*4+1]=sx(s)&255;o[i*4+2]=patternBase(s)&255;o[i*4+3]=0});for(let i=fr().sprites.length;i<32;i++)o[i*4]=216;return o}
-function paletteBytes(){let o=new Uint8Array(32);P.palette.forEach((rgb,i)=>{o[i*2]=((rgb[0]&7)<<4)|(rgb[2]&7);o[i*2+1]=rgb[1]&7});return o}
+function patBytes(){const out=new Uint8Array(2048);for(const s of fr().sprites){const p=patternBase(s);if(sz()===8){for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[y][x]<<(7-x);out[p*8+y]=b}}else{[[0,0],[0,8],[8,0],[8,8]].forEach(([ox,oy],qi)=>{for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[oy+y][ox+x]<<(7-x);out[(p+qi)*8+y]=b}})}}return out}
+function colBytes(){const out=new Uint8Array(512);fr().sprites.slice(0,32).forEach((s,i)=>{for(let y=0;y<16;y++){const a=s.lines[y];let b=a.color&15;if(a.or)b|=64;out[i*16+y]=b}});return out}
+function satBytes(){const out=new Uint8Array(128);fr().sprites.slice(0,32).forEach((s,i)=>{out[i*4]=(sy(s)-1)&255;out[i*4+1]=sx(s)&255;out[i*4+2]=patternBase(s)&255;out[i*4+3]=0});for(let i=fr().sprites.length;i<32;i++)out[i*4]=216;return out}
+function paletteBytes(){const out=new Uint8Array(32);P.palette.forEach((rgb,i)=>{out[i*2]=((rgb[0]&7)<<4)|(rgb[2]&7);out[i*2+1]=rgb[1]&7});return out}

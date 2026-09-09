@@ -18,7 +18,7 @@ const rgb8To3=rgb=>Array.from({length:3},(_,i)=>C(Math.round(C(Number(rgb?.[i])|
 const rgb3Hex=rgb=>'#'+rgb8(rgb).map(v=>v.toString(16).padStart(2,'0')).join('');
 function refreshPaletteCache(){PAL=P.palette.map(rgb3Hex)}
 function normalizePalette(pal){if(!Array.isArray(pal)||pal.length!==16)throw new Error('Palette must have 16 colors');return pal.map(normalizeRgb3)}
-function mkLayer(i){return{name:'Sprite '+i,ox:0,oy:0,pattern:(P?.size||16)===16?i*4:i,visible:true,mask:mask(),lines:attrs()}}
+function mkLayer(i){return{name:'Sprite '+i,ox:0,oy:0,pattern:C(Math.round(Number(i)||0),0,255),visible:true,mask:mask(),lines:attrs()}}
 function mkFrame(i){return{name:'Frame '+i,wait:6,sprites:[mkLayer(0)]}}
 function normalizeFrameOrigin(f){
   if(!f?.sprites?.length)return;
@@ -52,20 +52,16 @@ function dirty(save=true){setStatus('Modified');if(save)try{localStorage.setItem
 function clampSelection(){F=C(F,0,P.frames.length-1);S=C(S,0,fr().sprites.length-1);L=C(L,0,sz()-1);K=C(K,0,15)}
 function render(){clampSelection();refreshPaletteCache();renderFrames();renderLayers();props();lineTable();palette();drawEditor();warnings()}
 function renderFrames(){let h=$('frames');h.innerHTML='';P.frames.forEach((f,i)=>{let d=document.createElement('div');d.className='item'+(i===F?' sel':'');d.textContent=i+' · '+f.name;d.onclick=()=>{F=i;S=0;L=0;render()};h.appendChild(d)});$('delFrame').disabled=P.frames.length<=1}
-function renderLayers(){
-  const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32;
-  const badge=$('selectedSpriteIndex');if(badge)badge.textContent=S===0?'#0 · origin':'#'+S;
-}
+function renderLayers(){const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32}
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function signed(v){return v>=0?'+'+v:String(v)}
 function props(){
-  const s=layer(),origin=S===0,lastSprite=S>=fr().sprites.length-1;
-  $('pattern').value=s.pattern;$('layerX').value=s.ox;$('layerY').value=s.oy;$('visible').checked=s.visible;$('title').textContent='Sprite editor';
-  const badge=$('selectedSpriteIndex');if(badge)badge.textContent=origin?'#0 · origin':'#'+S;
-  $('layerX').disabled=origin;$('layerY').disabled=origin;['moveL','moveR','moveU','moveD'].forEach(id=>$(id).disabled=origin);
-  $('layerDel').disabled=origin||fr().sprites.length<=1;
-  $('layerUp').disabled=S<=1;
-  $('layerDown').disabled=origin||lastSprite;
+  const origin=S===0,lastSprite=S>=fr().sprites.length-1;
+  const title=$('title');if(title)title.textContent='Object editor';
+  const del=$('layerDel'),up=$('layerUp'),down=$('layerDown');
+  if(del)del.disabled=origin||fr().sprites.length<=1;
+  if(up)up.disabled=S<=1;
+  if(down)down.disabled=origin||lastSprite;
 }
 function updatePaletteEditor(){
   const rgb=P.palette[K],out=rgb8(rgb),hex=PAL[K];

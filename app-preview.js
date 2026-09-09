@@ -27,7 +27,7 @@
       if(!s.visible)return;
       const ox=signedX(s,index)-b.minX,oy=signedY(s,index)-b.minY;
       for(let y=0;y<n;y++){
-        const a=s.lines[y];if(!a.color)continue;
+        const a=s.lines[y];if(s.transparent&&a.color===0)continue;
         for(let x=0;x<n;x++){
           if(!s.mask[y][x])continue;
           const px=ox+x,py=oy+y;

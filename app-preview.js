@@ -3,7 +3,7 @@
   const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons');
   let zoom=1,showBorders=true,overrideFrame=null,scheduled=0,pendingFrame=null,hover=null;
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
-  let drawing=false,drawErase=false,drawLast=null,drawChanged=false,drawPointerId=null;
+  let drawing=false,drawErase=false,drawLast=null,drawChanged=false,drawSelectionChanged=false,drawPointerId=null;
 
   function boxes(frame){
     const n=sz(),out=[];
@@ -109,7 +109,8 @@
     const r=canvas.getBoundingClientRect(),w=Number(canvas.dataset.gridW),h=Number(canvas.dataset.gridH),parts=String(canvas.dataset.bounds||'').split(',').map(Number);
     if(!r.width||!r.height||!w||!h||parts.length!==4||parts.some(v=>!Number.isFinite(v)))return null;
     if(e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom)return null;
-    return{gx:parts[0]+C(Math.floor((e.clientX-r.left)/r.width*w),0,w-1),gy:parts[1]+C(Math.floor((e.clientY-r.top)/r.height*h),0,h-1)};
+    const px=(e.clientX-r.left)/r.width*w,py=(e.clientY-r.top)/r.height*h;
+    return{gx:parts[0]+Math.floor(px),gy:parts[1]+Math.floor(py)};
   }
 
   function localPointFor(index,p){
@@ -118,10 +119,11 @@
     return x>=0&&y>=0&&x<n&&y<n?{x,y}:null;
   }
 
-  function pointInsideAnySprite(p){
-    if(!p)return false;const n=sz();
-    return fr().sprites.some((s,index)=>s.visible&&p.gx>=spriteOffsetX(s,index)&&p.gx<spriteOffsetX(s,index)+n&&p.gy>=spriteOffsetY(s,index)&&p.gy<spriteOffsetY(s,index)+n);
+  function spriteHitAt(p){
+    if(!p)return null;const n=sz();
+    return spritesByPriority(fr(),true).find(({s,index})=>s.visible&&p.gx>=spriteOffsetX(s,index)&&p.gx<spriteOffsetX(s,index)+n&&p.gy>=spriteOffsetY(s,index)&&p.gy<spriteOffsetY(s,index)+n)||null;
   }
+  function pointInsideAnySprite(p){return !!spriteHitAt(p)}
 
   function paintPreviewLine(s,a,b,value){
     let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy,changed=false;
@@ -131,20 +133,26 @@
 
   function updatePreviewCursor(e){
     if(panning){wrap.style.cursor='grabbing';return}
-    const p=canvasLogicalPoint(e);wrap.style.cursor=pointInsideAnySprite(p)?'crosshair':'grab';
+    const p=canvasLogicalPoint(e),selectedLocal=localPointFor(S,p);
+    if(selectedLocal){wrap.style.cursor='crosshair';return}
+    wrap.style.cursor=pointInsideAnySprite(p)?'pointer':'grab';
   }
 
-  function beginDrawing(e,local){
+  function beginDrawing(e,index,local){
     if(overrideFrame||$('selectTool')?.classList.contains('on'))return false;
-    const s=fr().sprites[S];if(!s||!local)return false;
-    e.preventDefault();drawing=true;drawPointerId=e.pointerId;drawErase=e.button===2||tool==='eraser';drawLast=local;drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;
+    const s=fr().sprites[index];if(!s||!local)return false;
+    e.preventDefault();
+    if(S!==index){S=index;drawSelectionChanged=true}
+    L=local.y;drawing=true;drawPointerId=e.pointerId;drawErase=e.button===2||tool==='eraser';drawLast=local;drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;
     wrap.setPointerCapture?.(e.pointerId);schedule(fr());window.redrawEditorLight?.();return true;
   }
 
   function endPointer(e){
     if(drawing&&e.pointerId===drawPointerId){
       drawing=false;drawPointerId=null;drawLast=null;
-      if(drawChanged){drawChanged=false;dirty();render()}else schedule(fr());
+      const changed=drawChanged,selectionChanged=drawSelectionChanged;drawChanged=false;drawSelectionChanged=false;
+      if(changed)dirty();
+      if(changed||selectionChanged)render();else schedule(fr());
       try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}
       updatePreviewCursor(e);return;
     }
@@ -165,16 +173,17 @@
   wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
   wrap.addEventListener('contextmenu',e=>{if(pointInsideAnySprite(canvasLogicalPoint(e)))e.preventDefault()});
   wrap.addEventListener('pointerdown',e=>{
-    const p=canvasLogicalPoint(e),local=localPointFor(S,p),insideAny=pointInsideAnySprite(p);
-    if((e.button===0||e.button===2)&&local&&beginDrawing(e,local))return;
-    if(insideAny){e.preventDefault();return}
+    const p=canvasLogicalPoint(e),selectedLocal=localPointFor(S,p),hit=spriteHitAt(p);
+    if((e.button===0||e.button===2)&&selectedLocal&&beginDrawing(e,S,selectedLocal))return;
+    if((e.button===0||e.button===2)&&hit){const local=localPointFor(hit.index,p);if(local&&beginDrawing(e,hit.index,local))return}
+    if(hit){e.preventDefault();return}
     if(e.button!==0)return;
     e.preventDefault();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.style.cursor='grabbing';wrap.setPointerCapture?.(e.pointerId);
   });
   wrap.addEventListener('pointermove',e=>{
     if(drawing&&e.pointerId===drawPointerId){
       e.preventDefault();const local=localPointFor(S,canvasLogicalPoint(e));
-      if(local){const s=fr().sprites[S];if(drawLast)drawChanged=paintPreviewLine(s,drawLast,local,!drawErase)||drawChanged;else drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;drawLast=local;schedule(fr());window.redrawEditorLight?.()}else drawLast=null;
+      if(local){const s=fr().sprites[S];if(drawLast)drawChanged=paintPreviewLine(s,drawLast,local,!drawErase)||drawChanged;else drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;drawLast=local;L=local.y;schedule(fr());window.redrawEditorLight?.()}else drawLast=null;
       return;
     }
     if(panning){e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss();return}

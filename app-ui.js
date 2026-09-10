@@ -2,13 +2,11 @@ $('new').onclick=()=>{if(confirm('Start a new project?')){fresh();if(typeof refr
 $('save').onclick=()=>dl(JSON.stringify(P,null,2),'pixieverse.msxsprite','application/json');
 $('load').onclick=()=>$('loadFile').click();
 $('loadFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{P=parseProject(JSON.parse(await f.text()));F=S=L=0;K=15;dirty();render();if(typeof refreshPaletteFileMenu==='function')refreshPaletteFileMenu();setStatus('Project loaded')}catch(err){alert('Invalid current Pixieverse project')}finally{e.target.value=''}};
-$('addFrame').onclick=()=>{P.frames.push(clone(fr()));F=P.frames.length-1;fr().name='Frame '+F;S=0;L=0;dirty();render()};
-$('dupFrame').onclick=()=>{const f=clone(fr());f.name=fr().name+' copy';P.frames.splice(F+1,0,f);F++;S=0;L=0;dirty();render()};
+$('addFrame').onclick=()=>{P.frames.push(clone(fr()));F=P.frames.length-1;fr().name='Frame '+F;normalizeFramePriorities(fr());S=0;L=0;dirty();render()};
+$('dupFrame').onclick=()=>{const f=clone(fr());f.name=fr().name+' copy';normalizeFramePriorities(f);P.frames.splice(F+1,0,f);F++;S=0;L=0;dirty();render()};
 $('delFrame').onclick=()=>{if(P.frames.length>1){P.frames.splice(F,1);F=C(F,0,P.frames.length-1);S=L=0;dirty();render()}};
-$('dupLayer').onclick=()=>{if(fr().sprites.length<32){const s=clone(layer());s.name='Sprite '+(S+1);fr().sprites.splice(S+1,0,s);S++;normalizeFrameOrigin(fr());dirty();render()}};
+$('dupLayer').onclick=()=>{if(fr().sprites.length<32){const s=clone(layer());s.name='Sprite '+fr().sprites.length;s.priority=fr().sprites.length;fr().sprites.push(s);S=fr().sprites.length-1;normalizeFrameOrigin(fr());dirty();render()}};
 $('layerDel').onclick=()=>{if(S===0)return;if(fr().sprites.length>1){fr().sprites.splice(S,1);S=C(S,0,fr().sprites.length-1);normalizeFrameOrigin(fr());L=0;dirty();render()}};
-$('layerUp').onclick=()=>{if(S>1){const a=fr().sprites;[a[S-1],a[S]]=[a[S],a[S-1]];S--;normalizeFrameOrigin(fr());dirty();render();setStatus('Higher priority · closer to top')}};
-$('layerDown').onclick=()=>{const a=fr().sprites;if(S>0&&S<a.length-1){[a[S+1],a[S]]=[a[S],a[S+1]];S++;normalizeFrameOrigin(fr());dirty();render();setStatus('Lower priority · closer to bottom')}};
 $('editorZoomOut').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(-1)});$('editorZoomIn').addEventListener('click',e=>{e.preventDefault();changeEditorZoom(1)});
 $('editorWrap').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();changeEditorZoom(e.deltaY<0?1:-1)},{passive:false});
 $('pencil').onclick=()=>toolset('pencil');$('eraser').onclick=()=>toolset('eraser');

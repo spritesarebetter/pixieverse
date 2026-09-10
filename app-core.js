@@ -79,15 +79,24 @@ function renderFrames(){const h=$('frames');h.innerHTML='';P.frames.forEach((f,i
 function renderLayers(){const add=$('addLayer');if(add)add.disabled=fr().sprites.length>=32}
 const spriteOffsetX=(s,index)=>index===0?0:Math.round(Number(s?.ox)||0);
 const spriteOffsetY=(s,index)=>index===0?0:Math.round(Number(s?.oy)||0);
+function spritePixelSample(s,x,y){
+  const line=s.lines[y],painted=!!s.mask[y][x],color=painted?(line.color&15):0;
+  return{painted,color,or:painted&&color!==0&&!!line.or};
+}
 function spriteMode2ColorAt(frame,x,y){
   let color=-1;const n=sz();
   for(const {s,index} of spritesByPriority(frame,false)){
     if(!s?.visible)continue;
     const lx=x-spriteOffsetX(s,index),ly=y-spriteOffsetY(s,index);
     if(lx<0||ly<0||lx>=n||ly>=n)continue;
-    const a=s.lines[ly],pixel=s.mask[ly][lx]?a.color:0;
-    if(s.transparent&&pixel===0)continue;
-    if(a.or&&color>=0)color=(color|pixel)&15;else color=pixel;
+    const pixel=spritePixelSample(s,lx,ly);
+    if(!pixel.painted||pixel.color===0){
+      if(s.transparent)continue;
+      color=0;
+      continue;
+    }
+    if(pixel.or&&color>=0)color=(color|pixel.color)&15;
+    else color=pixel.color;
   }
   return color;
 }

@@ -48,16 +48,16 @@
     baseChangeEditorZoom(delta);
   };
 
-  function fitObjectEditorSprites(iterations=3,force=false){
+  function fitObjectEditorSprites(iterations=4,force=false){
     if(manualZoom&&!force)return;
     if(fitRaf)cancelAnimationFrame(fitRaf);
     const run=()=>{
       fitRaf=0;
       if(manualZoom&&!force)return;
       const unit=stage.querySelector('.spriteunit');if(!unit||!editorWrap)return;
-      const available=Math.max(80,editorWrap.clientHeight-12),current=unit.getBoundingClientRect().height;
-      if(current>0){
-        const ratio=available/current;
+      const availableW=Math.max(100,editorWrap.clientWidth-18),availableH=Math.max(80,editorWrap.clientHeight-18),rect=stage.getBoundingClientRect(),currentW=rect.width,currentH=rect.height;
+      if(currentW>0&&currentH>0){
+        const ratio=Math.min(availableW/currentW,availableH/currentH);
         if(Math.abs(ratio-1)>.015){
           editorZoom=C(editorZoom*ratio,.1,8);
           baseApply();syncAllSpriteScales();
@@ -68,7 +68,7 @@
     fitRaf=requestAnimationFrame(run);
   }
   window.fitObjectEditorSprites=fitObjectEditorSprites;
-  window.resetObjectEditorFit=()=>{manualZoom=false;fitObjectEditorSprites(3,true)};
+  window.resetObjectEditorFit=()=>{manualZoom=false;fitObjectEditorSprites(4,true)};
 
   function drawSprite(c,s,line=-1){
     const n=sz(),scale=backingCell(),g=c.getContext('2d');

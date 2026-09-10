@@ -29,7 +29,7 @@
       c.style.height=size+'px';
       c.style.minWidth=size+'px';
       c.style.minHeight=size+'px';
-      c.style.imageRendering='auto';
+      c.style.imageRendering='pixelated';
     });
     stage.querySelectorAll('.spritecolorrail').forEach(r=>{
       r.style.width=railWidth(cell,r.classList.contains('base'))+'px';
@@ -72,7 +72,7 @@
 
   function drawSprite(c,s,line=-1){
     const n=sz(),scale=backingCell(),g=c.getContext('2d');
-    c.width=n*scale;c.height=n*scale;editorCell=scale;g.imageSmoothingEnabled=false;
+    c.width=n*scale;c.height=n*scale;editorCell=scale;g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;g.clearRect(0,0,c.width,c.height);
     for(let y=0;y<n;y++)for(let x=0;x<n;x++){
       const a=s.lines[y],col=s.mask[y][x]?a.color:0;
       g.fillStyle=PAL[col];
@@ -83,7 +83,11 @@
     for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(c.width,y*scale+.5);g.stroke()}
     if(line>=0){g.strokeStyle='rgba(101,215,192,.65)';g.strokeRect(1.5,line*scale+1.5,n*scale-3,Math.max(1,scale-3))}
   }
-  function pointFor(c,e){const r=c.getBoundingClientRect();return{x:C(Math.floor((e.clientX-r.left)/r.width*sz()),0,sz()-1),y:C(Math.floor((e.clientY-r.top)/r.height*sz()),0,sz()-1)}}
+  function pointFor(c,e){
+    const r=c.getBoundingClientRect();
+    if(!r.width||!r.height||e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom)return null;
+    return{x:Math.floor((e.clientX-r.left)/r.width*sz()),y:Math.floor((e.clientY-r.top)/r.height*sz())};
+  }
   function paintLine(s,a,b,v){let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy;for(;;){const colored=v&&K!==0;s.mask[y0][x0]=colored?1:0;if(colored)s.lines[y0].color=K;if(x0===x1&&y0===y1)break;const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}}
   function lightRedraw(){drawSprite(editor,layer(),L);if(typeof renderCompositePreview==='function')renderCompositePreview()}
   window.redrawEditorLight=lightRedraw;
@@ -149,11 +153,18 @@
   function startStroke(c,index,s,e){
     if($('selectTool').classList.contains('on')){if(index!==S){e.preventDefault();e.stopImmediatePropagation();S=index;L=0;render()}return false}
     if(e.pointerType==='mouse'&&e.button!==0&&e.button!==2)return false;
-    e.preventDefault();e.stopImmediatePropagation();S=index;const p=pointFor(c,e),now=performance.now(),key=index+':'+p.x+','+p.y;
+    const p=pointFor(c,e);if(!p)return false;
+    e.preventDefault();e.stopImmediatePropagation();S=index;const now=performance.now(),key=index+':'+p.x+','+p.y;
     if(e.button===0&&now-lastTapAt<=DOUBLE_TAP_MS&&key===lastTapKey){s.mask[p.y][p.x]=0;L=p.y;lastTapAt=0;lastTapKey='';dirty();render();return true}
     lastTapAt=now;lastTapKey=key;activeCanvas=c;activeSprite=s;lastPoint=p;eraseStroke=e.button===2||tool==='eraser';strokeChanged=true;L=p.y;paintLine(s,p,p,eraseStroke?0:1);c.setPointerCapture?.(e.pointerId);drawSprite(c,s,L);if(typeof renderCompositePreview==='function')renderCompositePreview();return true;
   }
-  function moveStroke(c,e){if(activeCanvas!==c||!activeSprite)return false;e.preventDefault();e.stopImmediatePropagation();const p=pointFor(c,e);paintLine(activeSprite,lastPoint,p,eraseStroke?0:1);lastPoint=p;L=p.y;drawSprite(c,activeSprite,L);if(typeof renderCompositePreview==='function')renderCompositePreview();return true}
+  function moveStroke(c,e){
+    if(activeCanvas!==c||!activeSprite)return false;
+    e.preventDefault();e.stopImmediatePropagation();const p=pointFor(c,e);
+    if(!p){lastPoint=null;return true}
+    if(lastPoint)paintLine(activeSprite,lastPoint,p,eraseStroke?0:1);else paintLine(activeSprite,p,p,eraseStroke?0:1);
+    lastPoint=p;L=p.y;drawSprite(c,activeSprite,L);if(typeof renderCompositePreview==='function')renderCompositePreview();return true;
+  }
   function endStroke(c,e){if(activeCanvas!==c)return false;e?.preventDefault?.();e?.stopImmediatePropagation?.();activeCanvas=null;activeSprite=null;lastPoint=null;if(strokeChanged){strokeChanged=false;dirty();render()}return true}
   function wireSelected(){
     if(editor.dataset.stableWired)return;editor.dataset.stableWired='1';editor.oncontextmenu=e=>e.preventDefault();

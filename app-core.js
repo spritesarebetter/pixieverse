@@ -107,6 +107,6 @@ function palette(){
   PAL.forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(layer().lines[L].color===i?' on':'')+(K===i?' editing':'');b.style.background=c;b.title='Color '+i+' · '+c.toUpperCase();b.onclick=()=>{K=i;render()};h.appendChild(b)});
   updatePaletteEditor();
 }
-function setPaletteComponent3(channel,value){P.palette[K][channel]=C(Math.round(Number(value)||0,0,7);refreshPaletteCache();dirty();render()}
+function setPaletteComponent3(channel,value){P.palette[K][channel]=C(Math.round(Number(value)||0),0,7);refreshPaletteCache();dirty();render()}
 function setPaletteComponent8(channel,value){const out=rgb8(P.palette[K]);out[channel]=C(Math.round(Number(value)||0),0,255);P.palette[K]=rgb8To3(out);refreshPaletteCache();dirty();render()}
 function lineTable(){L=C(L,0,sz()-1)}

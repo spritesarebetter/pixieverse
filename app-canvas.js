@@ -33,7 +33,8 @@ function covers(s,y){return s.visible&&y>=sy(s)&&y<sy(s)+sz()}
 function warnings(){let bad=0;for(let y=0;y<212;y++)if(fr().sprites.filter(s=>covers(s,y)).length>8)bad++;$('warn').textContent=bad?'⚠ '+bad+' scanlines exceed 8 sprites':''}
 function dl(data,name,type='application/octet-stream'){const a=document.createElement('a'),b=data instanceof Blob?data:new Blob([data],{type});a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 function patternBase(s){const p=Math.round(Number(s?.pattern)||0);return sz()===16?C(p,0,63)*4:C(p,0,255)}
+function hardwareSprites(){return spritesByPriority(fr(),true).map(entry=>entry.s).slice(0,32)}
 function patBytes(){const out=new Uint8Array(2048);for(const s of fr().sprites){const p=patternBase(s);if(sz()===8){for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[y][x]<<(7-x);out[p*8+y]=b}}else{[[0,0],[0,8],[8,0],[8,8]].forEach(([ox,oy],qi)=>{for(let y=0;y<8;y++){let b=0;for(let x=0;x<8;x++)b|=s.mask[oy+y][ox+x]<<(7-x);out[(p+qi)*8+y]=b}})}}return out}
-function colBytes(){const out=new Uint8Array(512);fr().sprites.slice(0,32).forEach((s,i)=>{for(let y=0;y<16;y++){const a=s.lines[y];let b=a.color&15;if(a.or)b|=64;out[i*16+y]=b}});return out}
-function satBytes(){const out=new Uint8Array(128);fr().sprites.slice(0,32).forEach((s,i)=>{out[i*4]=(sy(s)-1)&255;out[i*4+1]=sx(s)&255;out[i*4+2]=patternBase(s)&255;out[i*4+3]=0});for(let i=fr().sprites.length;i<32;i++)out[i*4]=216;return out}
+function colBytes(){const out=new Uint8Array(512);hardwareSprites().forEach((s,i)=>{for(let y=0;y<16;y++){const a=s.lines[y];let b=a.color&15;if(a.or)b|=64;out[i*16+y]=b}});return out}
+function satBytes(){const out=new Uint8Array(128),sprites=hardwareSprites();sprites.forEach((s,i)=>{out[i*4]=(sy(s)-1)&255;out[i*4+1]=sx(s)&255;out[i*4+2]=patternBase(s)&255;out[i*4+3]=0});for(let i=sprites.length;i<32;i++)out[i*4]=216;return out}
 function paletteBytes(){const out=new Uint8Array(32);P.palette.forEach((rgb,i)=>{out[i*2]=((rgb[0]&7)<<4)|(rgb[2]&7);out[i*2+1]=rgb[1]&7});return out}

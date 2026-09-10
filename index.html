@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260911b">
-<link rel="stylesheet" href="responsive.css?v=20260911b">
-<link rel="stylesheet" href="app-editing.css?v=20260911b">
-<link rel="stylesheet" href="layout.css?v=20260911b">
-<link rel="stylesheet" href="ui-scale.css?v=20260911b">
+<link rel="stylesheet" href="styles.css?v=20260911c">
+<link rel="stylesheet" href="responsive.css?v=20260911c">
+<link rel="stylesheet" href="app-editing.css?v=20260911c">
+<link rel="stylesheet" href="layout.css?v=20260911c">
+<link rel="stylesheet" href="ui-scale.css?v=20260911c">
 </head>
 <body>
 <header>
@@ -20,8 +20,8 @@
     <section id="previewSection" class="sideblock previewsection collapsible" data-collapsible>
       <div class="sectionhead"><h2>Preview</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Preview">▾</button></div>
       <div class="collapsebody">
-        <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button></div>
-        <div id="previewWrap" class="previewwrap" title="Drag to pan · Ctrl+wheel to zoom · double-click to center"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite object preview"></canvas></div>
+        <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button><div id="previewSpriteButtons" class="tools" style="display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap"></div></div>
+        <div id="previewWrap" class="previewwrap" title="Draw on selected Sprite · drag outside sprites to pan · Ctrl+wheel to zoom · double-click outside sprites to center"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite object preview"></canvas></div>
       </div>
     </section>
   </aside>
@@ -75,6 +75,6 @@
   <p id="warn" class="warning"></p>
 </div>
 
-<script src="app-core.js?v=20260911b"></script><script src="palette-presets.js?v=20260911b"></script><script src="app-canvas.js?v=20260911b"></script><script src="app-ui.js?v=20260911b"></script><script src="app-palettes.js?v=20260911b"></script><script src="app-preview.js?v=20260911b"></script><script src="app-sprites.js?v=20260911b"></script><script src="app-frames.js?v=20260911b"></script><script src="app-editing.js?v=20260911b"></script><script src="app-patterns.js?v=20260911b"></script><script src="app-panels.js?v=20260911b"></script>
+<script src="app-core.js?v=20260911c"></script><script src="palette-presets.js?v=20260911c"></script><script src="app-canvas.js?v=20260911c"></script><script src="app-ui.js?v=20260911c"></script><script src="app-palettes.js?v=20260911c"></script><script src="app-preview.js?v=20260911c"></script><script src="app-sprites.js?v=20260911c"></script><script src="app-frames.js?v=20260911c"></script><script src="app-editing.js?v=20260911c"></script><script src="app-patterns.js?v=20260911c"></script><script src="app-panels.js?v=20260911c"></script>
 </body>
 </html>

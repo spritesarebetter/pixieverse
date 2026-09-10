@@ -1,19 +1,25 @@
 'use strict';
 (() => {
-  const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage');
+  const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons');
   let zoom=1,showBorders=true,overrideFrame=null,scheduled=0,pendingFrame=null,hover=null;
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
+  let drawing=false,drawErase=false,drawLast=null,drawChanged=false,drawPointerId=null;
 
-  function bounds(frame){
-    const n=sz(),boxes=[];
+  function boxes(frame){
+    const n=sz(),out=[];
     frame.sprites.forEach((s,index)=>{
       if(!s.visible)return;
       const x=spriteOffsetX(s,index),y=spriteOffsetY(s,index);
-      boxes.push({x,y,right:x+n,bottom:y+n});
+      out.push({s,index,x,y,right:x+n,bottom:y+n});
     });
-    if(!boxes.length)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};
-    const minX=Math.min(...boxes.map(b=>b.x)),minY=Math.min(...boxes.map(b=>b.y));
-    const maxX=Math.max(...boxes.map(b=>b.right)),maxY=Math.max(...boxes.map(b=>b.bottom));
+    return out;
+  }
+
+  function bounds(frame){
+    const n=sz(),visible=boxes(frame);
+    if(!visible.length)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};
+    const minX=Math.min(...visible.map(b=>b.x)),minY=Math.min(...visible.map(b=>b.y));
+    const maxX=Math.max(...visible.map(b=>b.right)),maxY=Math.max(...visible.map(b=>b.bottom));
     return{minX,minY,maxX,maxY,w:maxX-minX,h:maxY-minY};
   }
 
@@ -36,6 +42,29 @@
     $('previewZoom').textContent=Math.round(zoom*100)+'%';
   }
 
+  function drawGridInsideSprites(g,frame,b,cell){
+    const n=sz();
+    g.save();g.strokeStyle='rgba(255,255,255,.09)';g.lineWidth=1;
+    boxes(frame).forEach(box=>{
+      const x0=(box.x-b.minX)*cell,y0=(box.y-b.minY)*cell,x1=x0+n*cell,y1=y0+n*cell;
+      g.beginPath();
+      for(let x=0;x<=n;x++){const px=x0+x*cell+.5;g.moveTo(px,y0);g.lineTo(px,y1)}
+      for(let y=0;y<=n;y++){const py=y0+y*cell+.5;g.moveTo(x0,py);g.lineTo(x1,py)}
+      g.stroke();
+    });
+    g.restore();
+  }
+
+  function renderSpriteButtons(){
+    if(!spriteButtons)return;
+    spriteButtons.innerHTML='';
+    fr().sprites.forEach((s,index)=>{
+      const b=document.createElement('button');b.type='button';b.className='previewspritebutton'+(index===S?' on':'');b.textContent='Sprite #'+index;b.title='Draw on Sprite #'+index;
+      b.onclick=e=>{e.preventDefault();e.stopPropagation();S=index;render()};
+      spriteButtons.appendChild(b);
+    });
+  }
+
   function draw(frame=fr()){
     const b=bounds(frame),cell=Math.max(2,Math.min(16,Math.floor(2048/Math.max(b.w,b.h)))),g=canvas.getContext('2d'),cells=compose(frame,b);
     canvas.dataset.gridW=String(b.w);canvas.dataset.gridH=String(b.h);
@@ -47,9 +76,7 @@
       const col=cells[y*b.w+x];
       if(col>=0){g.fillStyle=PAL[col];g.fillRect(x*cell,y*cell,cell,cell)}
     }
-    g.strokeStyle='rgba(255,255,255,.09)';g.lineWidth=1;
-    for(let x=0;x<=b.w;x++){g.beginPath();g.moveTo(x*cell+.5,0);g.lineTo(x*cell+.5,canvas.height);g.stroke()}
-    for(let y=0;y<=b.h;y++){g.beginPath();g.moveTo(0,y*cell+.5);g.lineTo(canvas.width,y*cell+.5);g.stroke()}
+    drawGridInsideSprites(g,frame,b,cell);
     if(showBorders){
       frame.sprites.forEach((s,index)=>{
         if(!s.visible)return;
@@ -69,6 +96,7 @@
         }
       }
     }
+    if(frame===fr())renderSpriteButtons();
     syncCss();
   }
 
@@ -76,7 +104,53 @@
     pendingFrame=frame;if(scheduled)return;
     scheduled=requestAnimationFrame(()=>{scheduled=0;draw(pendingFrame||fr());pendingFrame=null});
   }
-  function stopPan(e){if(!panning)return;panning=false;wrap.classList.remove('panning');try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){} }
+
+  function canvasLogicalPoint(e){
+    const r=canvas.getBoundingClientRect(),w=Number(canvas.dataset.gridW),h=Number(canvas.dataset.gridH),parts=String(canvas.dataset.bounds||'').split(',').map(Number);
+    if(!r.width||!r.height||!w||!h||parts.length!==4||parts.some(v=>!Number.isFinite(v)))return null;
+    if(e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom)return null;
+    return{gx:parts[0]+C(Math.floor((e.clientX-r.left)/r.width*w),0,w-1),gy:parts[1]+C(Math.floor((e.clientY-r.top)/r.height*h),0,h-1)};
+  }
+
+  function localPointFor(index,p){
+    const s=fr().sprites[index];if(!s||!s.visible||!p)return null;
+    const x=p.gx-spriteOffsetX(s,index),y=p.gy-spriteOffsetY(s,index),n=sz();
+    return x>=0&&y>=0&&x<n&&y<n?{x,y}:null;
+  }
+
+  function pointInsideAnySprite(p){
+    if(!p)return false;const n=sz();
+    return fr().sprites.some((s,index)=>s.visible&&p.gx>=spriteOffsetX(s,index)&&p.gx<spriteOffsetX(s,index)+n&&p.gy>=spriteOffsetY(s,index)&&p.gy<spriteOffsetY(s,index)+n);
+  }
+
+  function paintPreviewLine(s,a,b,value){
+    let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy,changed=false;
+    for(;;){const next=value?1:0;if(s.mask[y0][x0]!==next){s.mask[y0][x0]=next;changed=true}if(x0===x1&&y0===y1)break;const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}
+    return changed;
+  }
+
+  function updatePreviewCursor(e){
+    if(panning){wrap.style.cursor='grabbing';return}
+    const p=canvasLogicalPoint(e);wrap.style.cursor=pointInsideAnySprite(p)?'crosshair':'grab';
+  }
+
+  function beginDrawing(e,p,local){
+    if(overrideFrame||$('selectTool')?.classList.contains('on'))return false;
+    const s=fr().sprites[S];if(!s||!local)return false;
+    e.preventDefault();drawing=true;drawPointerId=e.pointerId;drawErase=e.button===2||tool==='eraser';drawLast=local;drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;
+    wrap.setPointerCapture?.(e.pointerId);schedule(fr());window.redrawEditorLight?.();return true;
+  }
+
+  function endPointer(e){
+    if(drawing&&e.pointerId===drawPointerId){
+      drawing=false;drawPointerId=null;drawLast=null;
+      if(drawChanged){drawChanged=false;dirty();render()}else schedule(fr());
+      try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}
+      updatePreviewCursor(e);return;
+    }
+    if(!panning)return;panning=false;wrap.classList.remove('panning');try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}updatePreviewCursor(e);
+  }
+
   function clearHover(){if(!hover)return;hover=null;schedule(overrideFrame||fr())}
 
   window.renderCompositePreview=()=>schedule(overrideFrame||fr());
@@ -88,11 +162,27 @@
   $('previewZoomIn').onclick=()=>{zoom=C(Math.round((zoom+.1)*10)/10,.1,8);syncCss()};
   $('previewZoomOut').onclick=()=>{zoom=C(Math.round((zoom-.1)*10)/10,.1,8);syncCss()};
   $('previewBorders').onclick=()=>{showBorders=!showBorders;$('previewBorders').classList.toggle('on',showBorders);$('previewBorders').setAttribute('aria-pressed',String(showBorders));schedule(overrideFrame||fr())};
-  wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
-  wrap.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.setPointerCapture?.(e.pointerId)});
-  wrap.addEventListener('pointermove',e=>{if(!panning)return;e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss()});
-  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,stopPan));
-  wrap.addEventListener('dblclick',e=>{e.preventDefault();panX=panY=0;syncCss()});
+  wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0?.1:-.1))*10)/10,.1,8);syncCss()},{passive:false});
+  wrap.addEventListener('contextmenu',e=>{if(pointInsideAnySprite(canvasLogicalPoint(e)))e.preventDefault()});
+  wrap.addEventListener('pointerdown',e=>{
+    const p=canvasLogicalPoint(e),local=localPointFor(S,p),insideAny=pointInsideAnySprite(p);
+    if((e.button===0||e.button===2)&&local&&beginDrawing(e,p,local))return;
+    if(insideAny){e.preventDefault();return}
+    if(e.button!==0)return;
+    e.preventDefault();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.style.cursor='grabbing';wrap.setPointerCapture?.(e.pointerId);
+  });
+  wrap.addEventListener('pointermove',e=>{
+    if(drawing&&e.pointerId===drawPointerId){
+      e.preventDefault();const local=localPointFor(S,canvasLogicalPoint(e));
+      if(local){const s=fr().sprites[S];if(drawLast)drawChanged=paintPreviewLine(s,drawLast,local,!drawErase)||drawChanged;else drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;drawLast=local;schedule(fr());window.redrawEditorLight?.()}else drawLast=null;
+      return;
+    }
+    if(panning){e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss();return}
+    updatePreviewCursor(e);
+  });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,endPointer));
+  wrap.addEventListener('dblclick',e=>{if(pointInsideAnySprite(canvasLogicalPoint(e)))return;e.preventDefault();panX=panY=0;syncCss()});
+  wrap.addEventListener('pointerleave',e=>{if(!panning&&!drawing)wrap.style.cursor='grab'});
   if(stage){
     stage.addEventListener('pointermove',e=>{
       const c=e.target instanceof HTMLCanvasElement&&e.target.classList.contains('spritecanvas')?e.target:null;if(!c)return;

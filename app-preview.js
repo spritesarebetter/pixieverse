@@ -24,8 +24,9 @@
   }
 
   function fitCell(){
-    const h=Number(canvas.dataset.gridH)||sz(),availH=Math.max(24,wrap.clientHeight-12);
-    return Math.max(.05,availH/h)*zoom;
+    const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz();
+    const availW=Math.max(24,wrap.clientWidth-12),availH=Math.max(24,wrap.clientHeight-12);
+    return Math.max(.05,Math.min(availW/w,availH/h))*zoom;
   }
 
   function syncCss(){
@@ -41,7 +42,7 @@
     canvas.dataset.bounds=[b.minX,b.minY,b.maxX,b.maxY].join(',');
     canvas.width=b.w*cell;canvas.height=b.h*cell;
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,canvas.width,canvas.height);
-    g.fillStyle='#171b22';g.fillRect(0,0,canvas.width,canvas.height);
+    g.fillStyle='#000';g.fillRect(0,0,canvas.width,canvas.height);
     for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){
       const col=cells[y*b.w+x];
       if(col>=0){g.fillStyle=PAL[col];g.fillRect(x*cell,y*cell,cell,cell)}

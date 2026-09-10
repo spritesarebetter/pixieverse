@@ -1,5 +1,11 @@
-/* Preview must consume the full resizable section height; older editor CSS capped it at 280px. */
+/* Preview now owns the full left column; frame export is a floating menu. */
+.leftpanel .previewsection:not(.collapsed){flex:1 1 auto!important;height:auto!important;min-height:0!important}
+.leftpanel .previewsection.collapsed{flex:0 0 31px!important;height:auto!important;min-height:31px!important}
 .previewwrap{max-height:none!important;height:auto!important;flex:1 1 auto!important}
+.frameexportmenu{position:fixed!important;z-index:1000;width:230px!important;min-width:230px;padding:7px!important;overflow:visible!important;box-shadow:0 12px 36px rgba(0,0,0,.55)}
+.frameexportmenu[hidden]{display:none!important}
+.frameexporttitle{font:700 11px ui-monospace,monospace;color:var(--ac);margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frameexportbuttons{display:grid;grid-template-columns:1fr 1fr;gap:4px}.frameexportbuttons button{min-width:0}.frameexportbuttons button:last-child{grid-column:1/-1}.frameexportmenu .warning{margin:5px 0 0}
 
 /* Sprite rail labels sit in reserved space above each sprite instead of over the bitmap. */
 .spritebody{position:relative;margin-top:calc(19px * var(--sprite-ui-scale,1))}

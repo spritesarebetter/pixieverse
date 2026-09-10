@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260911a">
-<link rel="stylesheet" href="responsive.css?v=20260911a">
-<link rel="stylesheet" href="app-editing.css?v=20260911a">
-<link rel="stylesheet" href="layout.css?v=20260911a">
-<link rel="stylesheet" href="ui-scale.css?v=20260911a">
+<link rel="stylesheet" href="styles.css?v=20260911b">
+<link rel="stylesheet" href="responsive.css?v=20260911b">
+<link rel="stylesheet" href="app-editing.css?v=20260911b">
+<link rel="stylesheet" href="layout.css?v=20260911b">
+<link rel="stylesheet" href="ui-scale.css?v=20260911b">
 </head>
 <body>
 <header>
@@ -60,6 +60,8 @@
       <input id="paletteFile" type="file" accept=".gpl" hidden>
     </div>
 
+    <div id="timelineSplitter" class="timelinesplitter" role="separator" aria-orientation="horizontal" aria-label="Resize Frames / animation" tabindex="0"></div>
+
     <section class="panel timelinepanel collapsible" data-collapsible>
       <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">+Frame</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button id="exportFrameMenuButton" aria-haspopup="menu" aria-expanded="false">Export frame</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
       <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p></div>
@@ -73,6 +75,6 @@
   <p id="warn" class="warning"></p>
 </div>
 
-<script src="app-core.js?v=20260911a"></script><script src="palette-presets.js?v=20260911a"></script><script src="app-canvas.js?v=20260911a"></script><script src="app-ui.js?v=20260911a"></script><script src="app-palettes.js?v=20260911a"></script><script src="app-preview.js?v=20260911a"></script><script src="app-sprites.js?v=20260911a"></script><script src="app-frames.js?v=20260911a"></script><script src="app-editing.js?v=20260911a"></script><script src="app-patterns.js?v=20260911a"></script><script src="app-panels.js?v=20260911a"></script>
+<script src="app-core.js?v=20260911b"></script><script src="palette-presets.js?v=20260911b"></script><script src="app-canvas.js?v=20260911b"></script><script src="app-ui.js?v=20260911b"></script><script src="app-palettes.js?v=20260911b"></script><script src="app-preview.js?v=20260911b"></script><script src="app-sprites.js?v=20260911b"></script><script src="app-frames.js?v=20260911b"></script><script src="app-editing.js?v=20260911b"></script><script src="app-patterns.js?v=20260911b"></script><script src="app-panels.js?v=20260911b"></script>
 </body>
 </html>

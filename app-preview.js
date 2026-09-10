@@ -5,16 +5,16 @@
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
 
   function bounds(frame){
-    const n=sz();
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity,found=false;
+    const n=sz(),boxes=[];
     frame.sprites.forEach((s,index)=>{
       if(!s.visible)return;
       const x=spriteOffsetX(s,index),y=spriteOffsetY(s,index);
-      minX=Math.min(minX,x);minY=Math.min(minY,y);
-      maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);found=true;
+      boxes.push({x,y,right:x+n,bottom:y+n});
     });
-    if(!found)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};
-    return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
+    if(!boxes.length)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};
+    const minX=Math.min(...boxes.map(b=>b.x)),minY=Math.min(...boxes.map(b=>b.y));
+    const maxX=Math.max(...boxes.map(b=>b.right)),maxY=Math.max(...boxes.map(b=>b.bottom));
+    return{minX,minY,maxX,maxY,w:maxX-minX,h:maxY-minY};
   }
 
   function compose(frame,b){
@@ -38,6 +38,7 @@
   function draw(frame=fr()){
     const b=bounds(frame),cell=Math.max(2,Math.min(16,Math.floor(2048/Math.max(b.w,b.h)))),g=canvas.getContext('2d'),cells=compose(frame,b);
     canvas.dataset.gridW=String(b.w);canvas.dataset.gridH=String(b.h);
+    canvas.dataset.bounds=[b.minX,b.minY,b.maxX,b.maxY].join(',');
     canvas.width=b.w*cell;canvas.height=b.h*cell;
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,canvas.width,canvas.height);
     g.fillStyle='#171b22';g.fillRect(0,0,canvas.width,canvas.height);

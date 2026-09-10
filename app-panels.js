@@ -35,26 +35,7 @@
     splitter.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();setPreviewWidth(currentWidth()+(e.key==='ArrowRight'?16:-16),true)});
   }
 
-  const previewColumn=$('previewColumn'),previewSection=$('previewSection'),heightSplitter=$('previewHeightSplitter'),HEIGHT_KEY='pixieverse.previewHeight';
-  let heightDrag=false,startY=0,startHeight=330;
-  function heightLimits(){const total=previewColumn?.clientHeight||500;return{min:96,max:Math.max(120,total-92)}}
-  function currentHeight(){const raw=getComputedStyle(previewColumn).getPropertyValue('--preview-height');return Math.round(parseFloat(raw)||previewSection?.getBoundingClientRect().height||330)}
-  function setPreviewHeight(value,save=true){
-    if(!previewColumn)return;
-    const lim=heightLimits(),h=C(Math.round(Number(value)||330),lim.min,lim.max);previewColumn.style.setProperty('--preview-height',h+'px');
-    if(save)try{localStorage.setItem(HEIGHT_KEY,String(h))}catch(_){}
-    requestAnimationFrame(()=>window.redrawPreviewNow?.());
-  }
-  if(previewColumn&&previewSection&&heightSplitter){
-    let saved=330;try{saved=Number(localStorage.getItem(HEIGHT_KEY))||330}catch(_){}setPreviewHeight(saved,false);
-    heightSplitter.addEventListener('pointerdown',e=>{if(e.button!==0||previewSection.classList.contains('collapsed'))return;e.preventDefault();heightDrag=true;startY=e.clientY;startHeight=currentHeight();heightSplitter.classList.add('dragging');heightSplitter.setPointerCapture?.(e.pointerId)});
-    heightSplitter.addEventListener('pointermove',e=>{if(!heightDrag)return;e.preventDefault();setPreviewHeight(startHeight+e.clientY-startY,false)});
-    const stopHeight=e=>{if(!heightDrag)return;heightDrag=false;heightSplitter.classList.remove('dragging');setPreviewHeight(currentHeight(),true);try{heightSplitter.releasePointerCapture?.(e.pointerId)}catch(_){}};
-    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>heightSplitter.addEventListener(ev,stopHeight));
-    heightSplitter.addEventListener('keydown',e=>{if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();setPreviewHeight(currentHeight()+(e.key==='ArrowDown'?16:-16),true)});
-  }
-
-  window.addEventListener('resize',()=>{setPreviewWidth(currentWidth(),false);setPreviewHeight(currentHeight(),false);window.fitObjectEditorSprites?.()});
+  window.addEventListener('resize',()=>{setPreviewWidth(currentWidth(),false);window.redrawPreviewNow?.();window.fitObjectEditorSprites?.()});
   editorZoom=.5;
   applyEditorScale();
   window.syncAllSpriteScales?.();

@@ -5,17 +5,15 @@
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
 
   function bounds(frame){
-    const n=sz(),cx=n/2,cy=n/2;
-    let minX=0,minY=0,maxX=n,maxY=n;
+    const n=sz();
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity,found=false;
     frame.sprites.forEach((s,index)=>{
-      if(index>0&&!s.visible)return;
+      if(!s.visible)return;
       const x=spriteOffsetX(s,index),y=spriteOffsetY(s,index);
       minX=Math.min(minX,x);minY=Math.min(minY,y);
-      maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);
+      maxX=Math.max(maxX,x+n);maxY=Math.max(maxY,y+n);found=true;
     });
-    const halfW=Math.max(cx-minX,maxX-cx,cx),halfH=Math.max(cy-minY,maxY-cy,cy);
-    minX=Math.floor(cx-halfW);maxX=Math.ceil(cx+halfW);
-    minY=Math.floor(cy-halfH);maxY=Math.ceil(cy+halfH);
+    if(!found)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};
     return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
   }
 

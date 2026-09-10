@@ -134,7 +134,7 @@
     const p=canvasLogicalPoint(e);wrap.style.cursor=pointInsideAnySprite(p)?'crosshair':'grab';
   }
 
-  function beginDrawing(e,p,local){
+  function beginDrawing(e,local){
     if(overrideFrame||$('selectTool')?.classList.contains('on'))return false;
     const s=fr().sprites[S];if(!s||!local)return false;
     e.preventDefault();drawing=true;drawPointerId=e.pointerId;drawErase=e.button===2||tool==='eraser';drawLast=local;drawChanged=paintPreviewLine(s,local,local,!drawErase)||drawChanged;
@@ -162,11 +162,11 @@
   $('previewZoomIn').onclick=()=>{zoom=C(Math.round((zoom+.1)*10)/10,.1,8);syncCss()};
   $('previewZoomOut').onclick=()=>{zoom=C(Math.round((zoom-.1)*10)/10,.1,8);syncCss()};
   $('previewBorders').onclick=()=>{showBorders=!showBorders;$('previewBorders').classList.toggle('on',showBorders);$('previewBorders').setAttribute('aria-pressed',String(showBorders));schedule(overrideFrame||fr())};
-  wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0?.1:-.1))*10)/10,.1,8);syncCss()},{passive:false});
+  wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
   wrap.addEventListener('contextmenu',e=>{if(pointInsideAnySprite(canvasLogicalPoint(e)))e.preventDefault()});
   wrap.addEventListener('pointerdown',e=>{
     const p=canvasLogicalPoint(e),local=localPointFor(S,p),insideAny=pointInsideAnySprite(p);
-    if((e.button===0||e.button===2)&&local&&beginDrawing(e,p,local))return;
+    if((e.button===0||e.button===2)&&local&&beginDrawing(e,local))return;
     if(insideAny){e.preventDefault();return}
     if(e.button!==0)return;
     e.preventDefault();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.style.cursor='grabbing';wrap.setPointerCapture?.(e.pointerId);
@@ -182,7 +182,7 @@
   });
   ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,endPointer));
   wrap.addEventListener('dblclick',e=>{if(pointInsideAnySprite(canvasLogicalPoint(e)))return;e.preventDefault();panX=panY=0;syncCss()});
-  wrap.addEventListener('pointerleave',e=>{if(!panning&&!drawing)wrap.style.cursor='grab'});
+  wrap.addEventListener('pointerleave',()=>{if(!panning&&!drawing)wrap.style.cursor='grab'});
   if(stage){
     stage.addEventListener('pointermove',e=>{
       const c=e.target instanceof HTMLCanvasElement&&e.target.classList.contains('spritecanvas')?e.target:null;if(!c)return;

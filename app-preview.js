@@ -41,6 +41,7 @@
     const b=bounds(frame),cell=Math.max(2,Math.min(16,Math.floor(2048/Math.max(b.w,b.h)))),g=canvas.getContext('2d'),cells=compose(frame,b);
     canvas.dataset.gridW=String(b.w);canvas.dataset.gridH=String(b.h);
     canvas.width=b.w*cell;canvas.height=b.h*cell;
+    g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,canvas.width,canvas.height);
     g.fillStyle='#171b22';g.fillRect(0,0,canvas.width,canvas.height);
     for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){
       const col=cells[y*b.w+x];

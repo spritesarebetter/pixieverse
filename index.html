@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260909s">
-<link rel="stylesheet" href="responsive.css?v=20260909s">
-<link rel="stylesheet" href="app-editing.css?v=20260909s">
-<link rel="stylesheet" href="layout.css?v=20260909s">
-<link rel="stylesheet" href="ui-scale.css?v=20260909t">
+<link rel="stylesheet" href="styles.css?v=20260910a">
+<link rel="stylesheet" href="responsive.css?v=20260910a">
+<link rel="stylesheet" href="app-editing.css?v=20260910a">
+<link rel="stylesheet" href="layout.css?v=20260910a">
+<link rel="stylesheet" href="ui-scale.css?v=20260910a">
 </head>
 <body>
 <header>
@@ -23,13 +23,6 @@
         <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button></div>
         <div id="previewWrap" class="previewwrap" title="Drag to pan · Ctrl+wheel to zoom · double-click to center"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite object preview"></canvas></div>
       </div>
-    </section>
-
-    <div id="previewHeightSplitter" class="previewheightsplitter" role="separator" aria-orientation="horizontal" aria-label="Resize preview and export panel" tabindex="0"></div>
-
-    <section id="exportSection" class="sideblock exportsection collapsible" data-collapsible>
-      <div class="sectionhead"><h2>Export current frame</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Export">▾</button></div>
-      <div class="collapsebody"><div class="export"><button id="expPat">patterns.bin</button><button id="expCol">colors.bin</button><button id="expSat">sat.bin</button><button id="expPal">palette.bin</button><button id="expAsm">Z80 .asm</button></div><p id="warn" class="warning"></p></div>
     </section>
   </aside>
 
@@ -51,7 +44,7 @@
           </div>
         </div>
         <div class="objectactions">
-          <button id="addLayer">＋ Sprite</button><button id="dupLayer">Duplicate sprite</button><button id="clearSprite">Clear sprite</button><button id="layerUp">↑ Priority</button><button id="layerDown">↓ Priority</button><button id="layerDel">Delete sprite</button>
+          <button id="addLayer">＋ Sprite</button><button id="dupLayer">Duplicate sprite</button><button id="clearSprite">Clear sprite</button><button id="layerUp" title="Move selected sprite one level toward the top">↑ Higher priority</button><button id="layerDown" title="Move selected sprite one level toward the bottom">↓ Lower priority</button><button id="layerDel">Delete sprite</button>
         </div>
       </div>
       <div class="editorwork"><div id="editorWrap" class="editorwrap"><div id="editorStage" class="editorstage"><canvas id="editor" class="artboardshadow spritecanvas" title="Selected sprite"></canvas><div id="spriteColorRail" class="spritecolorrail"><div class="colorlabels"><span>Line color</span><span>OR</span></div><div id="lines"></div></div></div></div></div>
@@ -68,12 +61,18 @@
     </div>
 
     <section class="panel timelinepanel collapsible" data-collapsible>
-      <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">+Frame</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
+      <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">+Frame</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button id="exportFrameMenuButton" aria-haspopup="menu" aria-expanded="false">Export frame</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
       <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p></div>
     </section>
   </section>
 </main>
 
-<script src="app-core.js?v=20260909s"></script><script src="palette-presets.js?v=20260909s"></script><script src="app-canvas.js?v=20260909s"></script><script src="app-ui.js?v=20260909s"></script><script src="app-palettes.js?v=20260909s"></script><script src="app-preview.js?v=20260909s"></script><script src="app-sprites.js?v=20260909s"></script><script src="app-frames.js?v=20260909s"></script><script src="app-editing.js?v=20260909s"></script><script src="app-patterns.js?v=20260909s"></script><script src="app-panels.js?v=20260909s"></script>
+<div id="frameExportMenu" class="frameexportmenu panel" role="menu" hidden>
+  <div id="frameExportTitle" class="frameexporttitle">Export selected frame</div>
+  <div class="frameexportbuttons"><button id="expPat" role="menuitem">patterns.bin</button><button id="expCol" role="menuitem">colors.bin</button><button id="expSat" role="menuitem">sat.bin</button><button id="expPal" role="menuitem">palette.bin</button><button id="expAsm" role="menuitem">Z80 .asm</button></div>
+  <p id="warn" class="warning"></p>
+</div>
+
+<script src="app-core.js?v=20260910a"></script><script src="palette-presets.js?v=20260910a"></script><script src="app-canvas.js?v=20260910a"></script><script src="app-ui.js?v=20260910a"></script><script src="app-palettes.js?v=20260910a"></script><script src="app-preview.js?v=20260910a"></script><script src="app-sprites.js?v=20260910a"></script><script src="app-frames.js?v=20260910a"></script><script src="app-editing.js?v=20260910a"></script><script src="app-patterns.js?v=20260910a"></script><script src="app-panels.js?v=20260910a"></script>
 </body>
 </html>

@@ -7,6 +7,11 @@
 .frameexporttitle{font:700 11px ui-monospace,monospace;color:var(--ac);margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frameexportbuttons{display:grid;grid-template-columns:1fr 1fr;gap:4px}.frameexportbuttons button{min-width:0}.frameexportbuttons button:last-child{grid-column:1/-1}.frameexportmenu .warning{margin:5px 0 0}
 
+/* Priority is explicit per sprite: 0 is bottom, larger numbers are on top. */
+.spritepriority{display:flex;align-items:center;gap:calc(2.1px * var(--sprite-ui-scale,1));white-space:nowrap;flex:0 0 auto}
+.spritepriorityvalue{color:var(--ac);font-weight:700}
+.prioritystep{flex:0 0 auto}
+
 /* Sprite rail labels sit in reserved space above each sprite instead of over the bitmap. */
 .spritebody{position:relative;margin-top:calc(19px * var(--sprite-ui-scale,1))}
 .spritecolorrail .colorlabels{top:calc(-18px * var(--sprite-ui-scale,1))!important;height:calc(17px * var(--sprite-ui-scale,1));display:grid!important;grid-template-columns:minmax(0,1fr) minmax(18px,.42fr)!important;gap:calc(var(--editor-cell,30px)*.08);align-items:end!important;padding:0 calc(var(--editor-cell,30px)*.07)!important;box-sizing:border-box;text-align:center;white-space:nowrap;line-height:1}
@@ -46,6 +51,7 @@
   .spriteunithead{font-size:calc(11.8px * var(--sprite-ui-scale,1))!important;margin-bottom:calc(5.2px * var(--sprite-ui-scale,1))!important}
   .spriteunitheadrow{gap:calc(2.6px * var(--sprite-ui-scale,1))!important}
   .spriteunitidentity{margin-bottom:calc(2.6px * var(--sprite-ui-scale,1))!important}
+  .spritepriority{gap:calc(2.6px * var(--sprite-ui-scale,1))!important}
   .spriteselect{min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;padding:0 calc(5.2px * var(--sprite-ui-scale,1))!important;font-size:calc(11.8px * var(--sprite-ui-scale,1))!important}
   .spritepattern input,.spriteoffsetfield input{width:calc(50px * var(--sprite-ui-scale,1))!important;min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;font-size:calc(11.8px * var(--sprite-ui-scale,1))!important}
   .patternstep{width:calc(23.6px * var(--sprite-ui-scale,1))!important;min-width:calc(23.6px * var(--sprite-ui-scale,1))!important;height:calc(23.6px * var(--sprite-ui-scale,1))!important;min-height:calc(23.6px * var(--sprite-ui-scale,1))!important;font-size:calc(13px * var(--sprite-ui-scale,1))!important}

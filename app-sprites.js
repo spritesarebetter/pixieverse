@@ -20,7 +20,7 @@
     stage.style.setProperty('--sprite-ui-scale',String(uiScale));
     stage.style.gap=cell+'px';
     stage.querySelectorAll('.spriteunit').forEach(unit=>{
-      const index=Number(unit.dataset.spriteIndex)||0,total=size+railWidth(cell,index===0);
+      const index=Number(unit.dataset.spriteIndex)||0,s=fr().sprites[index],base=s&&spritePriority(s,index)===0,total=size+railWidth(cell,base);
       unit.style.width=total+'px';
       unit.style.setProperty('--sprite-unit-width',total+'px');
     });
@@ -98,15 +98,25 @@
     input.value=String(C(Math.round(Number(input.value)||0)+delta,0,maxPattern()));
     input.dispatchEvent(new Event('change',{bubbles:true}));
   }
+  function changePriority(index,delta){
+    const s=fr().sprites[index];if(!s)return;
+    const next=spritePriority(s,index)+delta;
+    if(setSpritePriority(fr(),index,next)){S=index;dirty();render();setStatus('Sprite #'+index+' priority '+spritePriority(fr().sprites[index],index))}
+  }
   function setOffset(index,axis,value){if(index===0)return;const s=fr().sprites[index];if(!s)return;s[axis]=Math.round(Number(value)||0);S=index;dirty();render()}
   function moveOffset(index,dx,dy){if(index===0)return;const s=fr().sprites[index];if(!s)return;s.ox=Math.round(Number(s.ox)||0)+dx;s.oy=Math.round(Number(s.oy)||0)+dy;S=index;dirty();render()}
   function setVisible(index,value){const s=fr().sprites[index];if(!s)return;s.visible=!!value;S=index;dirty();render()}
   function setTransparency(index,value){const s=fr().sprites[index];if(!s)return;s.transparent=!!value;S=index;dirty();render()}
 
   function buildHeader(index,s){
-    const origin=index===0,head=document.createElement('div');head.className='spriteunithead';
+    const origin=index===0,priority=spritePriority(s,index),head=document.createElement('div');head.className='spriteunithead';
     const top=document.createElement('div');top.className='spriteunitheadrow spriteunitidentity';
     const select=document.createElement('button');select.type='button';select.className='spriteselect'+(index===S?' on':'');select.textContent='Sprite #'+index;select.title=origin?'Sprite #0 · object origin':'Select Sprite #'+index;select.onclick=e=>{e.stopPropagation();selectSprite(index,L)};
+    const priorityControl=document.createElement('div');priorityControl.className='spritepriority';
+    const priorityValue=document.createElement('span');priorityValue.className='spritepriorityvalue';priorityValue.textContent='Priority '+priority;priorityValue.title='Priority 0 is the bottom layer; higher numbers are drawn on top';
+    const priorityMinus=document.createElement('button');priorityMinus.type='button';priorityMinus.className='patternstep prioritystep';priorityMinus.textContent='−';priorityMinus.title='Lower priority';priorityMinus.disabled=priority<=0;priorityMinus.onclick=e=>{e.stopPropagation();changePriority(index,-1)};
+    const priorityPlus=document.createElement('button');priorityPlus.type='button';priorityPlus.className='patternstep prioritystep';priorityPlus.textContent='+';priorityPlus.title='Higher priority';priorityPlus.disabled=priority>=fr().sprites.length-1;priorityPlus.onclick=e=>{e.stopPropagation();changePriority(index,1)};
+    priorityControl.append(priorityValue,priorityMinus,priorityPlus);
     const pattern=document.createElement('div');pattern.className='spritepattern';const patternLabel=document.createElement('span');patternLabel.textContent='Pattern';
     const patternInput=document.createElement('input');patternInput.type='number';patternInput.min='0';patternInput.max=String(maxPattern());patternInput.step='1';patternInput.value=String(s.pattern);patternInput.title='Pattern number';patternInput.onclick=e=>e.stopPropagation();patternInput.onpointerdown=e=>e.stopPropagation();patternInput.onchange=e=>{e.stopPropagation();setPattern(index,e.target.value)};
     const patternMinus=document.createElement('button');patternMinus.type='button';patternMinus.className='patternstep';patternMinus.textContent='−';patternMinus.title='Previous pattern';patternMinus.disabled=s.pattern<=0;patternMinus.onclick=e=>{e.stopPropagation();nudgePattern(index,patternInput,-1)};
@@ -114,7 +124,7 @@
     pattern.append(patternLabel,patternInput,patternMinus,patternPlus);
     const visible=document.createElement('label');visible.className='spritevisiblemini';visible.title='Sprite visible';const vis=document.createElement('input');vis.type='checkbox';vis.checked=s.visible;vis.onclick=e=>e.stopPropagation();vis.onchange=e=>{e.stopPropagation();setVisible(index,e.target.checked)};visible.append(vis,document.createTextNode(' visible'));
     const transparent=document.createElement('label');transparent.className='spritevisiblemini spritetransparency';transparent.title='When enabled, Color 0 is transparent';const tr=document.createElement('input');tr.type='checkbox';tr.checked=!!s.transparent;tr.onclick=e=>e.stopPropagation();tr.onchange=e=>{e.stopPropagation();setTransparency(index,e.target.checked)};transparent.append(tr,document.createTextNode(' transparency'));
-    top.append(select,pattern,visible,transparent);
+    top.append(select,priorityControl,pattern,visible,transparent);
 
     const pos=document.createElement('div');pos.className='spriteunitheadrow spriteoffsetrow';
     const x=document.createElement('label');x.className='spriteoffsetfield';x.innerHTML='<span>X</span>';const xi=document.createElement('input');xi.type='number';xi.value=String(origin?0:s.ox);xi.disabled=origin;xi.title=origin?'Sprite #0 is the origin':'X offset relative to Sprite #0';xi.onclick=e=>e.stopPropagation();xi.onpointerdown=e=>e.stopPropagation();xi.onchange=e=>{e.stopPropagation();setOffset(index,'ox',e.target.value)};x.appendChild(xi);
@@ -125,13 +135,13 @@
   }
 
   function buildRail(rail,s,index,selected){
-    const base=index===0;rail.className='spritecolorrail'+(base?' base':'');rail.innerHTML='';
+    const base=spritePriority(s,index)===0;rail.className='spritecolorrail'+(base?' base':'');rail.innerHTML='';
     const labels=document.createElement('div');labels.className='colorlabels';labels.innerHTML=base?'<span>Line color</span>':'<span>Line color</span><span>OR</span>';
     const rows=document.createElement('div');rows.className='spriterows';if(selected)rows.id='lines';rail.append(labels,rows);
     for(let y=0;y<sz();y++){
       const a=s.lines[y],r=document.createElement('div');r.className='colorrow'+(base?' basecolorrow':'')+(selected&&y===L?' sel':'');
       const sw=document.createElement('button');sw.className='linecolorswatch';sw.style.background=PAL[a.color];sw.title='Set line '+y+' color to selected Color '+K+'; all other pixels on the line are Color 0';sw.onclick=e=>{e.stopPropagation();S=index;L=y;a.color=K;dirty();render()};r.appendChild(sw);
-      if(!base){const or=document.createElement('input');or.type='checkbox';or.className='orbox';or.checked=!!a.or;or.title='OR / combine color';or.onclick=e=>e.stopPropagation();or.onchange=()=>{S=index;L=y;a.or=or.checked;dirty();render()};r.appendChild(or)}
+      if(!base){const or=document.createElement('input');or.type='checkbox';or.className='orbox';or.checked=!!a.or;or.title='OR / combine color with lower-priority sprite';or.onclick=e=>e.stopPropagation();or.onchange=()=>{S=index;L=y;a.or=or.checked;dirty();render()};r.appendChild(or)}
       r.onclick=()=>{S=index;L=y;render()};rows.appendChild(r);
     }
   }

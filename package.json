@@ -1,0 +1,39 @@
+{
+  "name": "pixieverse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pixieverse MSX2/MSX2+ object and sprite editor",
+  "main": "electron-main.js",
+  "scripts": {
+    "build:windows": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "build": {
+    "appId": "org.pixieverse.editor",
+    "productName": "Pixieverse",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "index.html",
+      "*.js",
+      "*.css",
+      "README.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Pixieverse.exe"
+    },
+    "portable": {
+      "artifactName": "Pixieverse.exe",
+      "requestExecutionLevel": "user"
+    }
+  }
+}

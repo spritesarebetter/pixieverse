@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons');
+  const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons'),previewPalette=$('previewPalette');
   let zoom=1,showBorders=true,overrideFrame=null,scheduled=0,pendingFrame=null,hover=null;
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
   let drawing=false,drawErase=false,drawLast=null,drawChanged=false,drawSelectionChanged=false,drawPointerId=null;
@@ -55,6 +55,18 @@
     g.restore();
   }
 
+  function renderPreviewPalette(){
+    if(!previewPalette)return;
+    previewPalette.innerHTML='';
+    PAL.forEach((color,index)=>{
+      const b=document.createElement('button');
+      b.type='button';b.title='Color '+index;b.setAttribute('aria-label','Color '+index);b.setAttribute('aria-pressed',String(index===K));
+      b.style.cssText='display:block;width:100%;min-width:0;height:20px;min-height:20px;padding:0;border:1px solid var(--ln);border-radius:2px;background:'+color+';box-shadow:'+(index===K?'inset 0 0 0 2px #fff':'none')+';outline:'+(index===K?'1px solid var(--ac)':'none')+';outline-offset:-1px';
+      b.onclick=e=>{e.preventDefault();e.stopPropagation();K=index;renderPreviewPalette();if(typeof palette==='function')palette();setStatus('Color '+index)};
+      previewPalette.appendChild(b);
+    });
+  }
+
   function renderSpriteButtons(){
     if(!spriteButtons)return;
     spriteButtons.innerHTML='';
@@ -97,6 +109,7 @@
       }
     }
     if(frame===fr())renderSpriteButtons();
+    renderPreviewPalette();
     syncCss();
   }
 
@@ -127,7 +140,13 @@
 
   function paintPreviewLine(s,a,b,value){
     let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy,changed=false;
-    for(;;){const next=value?1:0;if(s.mask[y0][x0]!==next){s.mask[y0][x0]=next;changed=true}if(x0===x1&&y0===y1)break;const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}
+    for(;;){
+      const colored=value&&K!==0,next=colored?1:0;
+      if(s.mask[y0][x0]!==next){s.mask[y0][x0]=next;changed=true}
+      if(colored&&s.lines[y0].color!==K){s.lines[y0].color=K;changed=true}
+      if(x0===x1&&y0===y1)break;
+      const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}
+    }
     return changed;
   }
 

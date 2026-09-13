@@ -102,7 +102,7 @@ function spriteMode2ColorAt(frame,x,y){
 }
 function props(){
   const origin=S===0;
-  const title=$('title');if(title)title.textContent='Object editor';
+  const title=$('title');if(title)title.textContent='Sprites';
   const del=$('layerDel');if(del)del.disabled=origin||fr().sprites.length<=1;
 }
 function updatePaletteEditor(){

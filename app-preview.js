@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons'),previewPalette=$('previewPalette');
-  let zoom=1,showBorders=true,scheduled=0,pendingFrame=null,hover=null,blinkOn=false;
+  let zoom=1,showBorders=true,scheduled=0,pendingFrame=null,hover=null;
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
   let drawing=false,drawErase=false,drawLast=null,drawTarget=-1,drawChanged=false,drawSelectionChanged=false,drawPointerId=null;
 
@@ -11,6 +11,7 @@
   function fitCell(){const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),availW=Math.max(24,wrap.clientWidth-12),availH=Math.max(24,wrap.clientHeight-12);return Math.max(.05,Math.min(availW/w,availH/h))*zoom}
   function syncCss(){const w=Number(canvas.dataset.gridW)||sz(),h=Number(canvas.dataset.gridH)||sz(),cell=fitCell();canvas.style.width=Math.max(1,w*cell)+'px';canvas.style.height=Math.max(1,h*cell)+'px';canvas.style.transform='translate3d('+panX+'px,'+panY+'px,0)';$('previewZoom').textContent=Math.round(zoom*100)+'%';syncSpriteHoverOverlay()}
   function drawGridInsideSprites(g,frame,b,cell){const n=sz();g.save();g.strokeStyle='rgba(255,255,255,.13)';g.lineWidth=1;boxes(frame).forEach(box=>{const x0=(box.x-b.minX)*cell,y0=(box.y-b.minY)*cell,x1=x0+n*cell,y1=y0+n*cell;g.beginPath();for(let x=0;x<=n;x++){const px=x0+x*cell+.5;g.moveTo(px,y0);g.lineTo(px,y1)}for(let y=0;y<=n;y++){const py=y0+y*cell+.5;g.moveTo(x0,py);g.lineTo(x1,py)}g.stroke()});g.restore()}
+  function selectedCursorBorder(){const rgb=P?.palette?.[K];return Array.isArray(rgb)&&rgb[0]===0&&rgb[1]===0&&rgb[2]===0?'#fff':'#000'}
 
   function renderPreviewPalette(){
     if(!previewPalette)return;
@@ -21,7 +22,6 @@
     if(!spriteButtons)return;if(spriteButtons.children.length!==fr().sprites.length){spriteButtons.innerHTML='';fr().sprites.forEach((s,index)=>{const b=document.createElement('button');b.type='button';b.textContent='Sprite #'+index;b.title='Select Sprite #'+index;b.onclick=e=>{e.preventDefault();e.stopPropagation();S=index;render()};spriteButtons.appendChild(b)})}
     [...spriteButtons.children].forEach((b,index)=>b.classList.toggle('on',index===S));
   }
-  function hoverCurrentColor(){if(!hover)return 0;const s=fr().sprites[hover.index];return s&&s.mask[hover.y]?.[hover.x]?(s.lines[hover.y]?.color&15):0}
 
   function draw(frame=fr()){
     const b=bounds(frame),cell=Math.max(2,Math.min(16,Math.floor(2048/Math.max(b.w,b.h)))),g=canvas.getContext('2d'),cells=compose(frame,b);
@@ -30,7 +30,7 @@
     for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){const col=cells[y*b.w+x];if(col>=0){g.fillStyle=PAL[col];g.fillRect(x*cell,y*cell,cell,cell)}}
     drawGridInsideSprites(g,frame,b,cell);
     if(showBorders)frame.sprites.forEach((s,index)=>{if(!s.visible)return;const x=(spriteOffsetX(s,index)-b.minX)*cell,y=(spriteOffsetY(s,index)-b.minY)*cell;g.save();g.lineWidth=2;g.strokeStyle=spritePriority(s,index)===0?'rgba(101,215,192,.9)':(index===S?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)');if(spritePriority(s,index)>0)g.setLineDash([Math.max(3,cell*.25),Math.max(2,cell*.15)]);g.strokeRect(x+1,y+1,sz()*cell-2,sz()*cell-2);g.restore()});
-    if(hover){const s=frame.sprites[hover.index];if(s){const x=(spriteOffsetX(s,hover.index)+hover.x-b.minX)*cell,y=(spriteOffsetY(s,hover.index)+hover.y-b.minY)*cell;if(x+cell>=0&&y+cell>=0&&x<=canvas.width&&y<=canvas.height){g.save();g.fillStyle=PAL[blinkOn?K:hoverCurrentColor()]||'#fff';g.fillRect(x+1,y+1,Math.max(1,cell-2),Math.max(1,cell-2));g.lineWidth=Math.max(2,cell*.1);g.strokeStyle=blinkOn?'#fff':'#111';g.strokeRect(x+1,y+1,Math.max(1,cell-2),Math.max(1,cell-2));g.restore()}}}
+    if(hover){const s=frame.sprites[hover.index];if(s){const x=(spriteOffsetX(s,hover.index)+hover.x-b.minX)*cell,y=(spriteOffsetY(s,hover.index)+hover.y-b.minY)*cell;if(x+cell>=0&&y+cell>=0&&x<=canvas.width&&y<=canvas.height){g.save();g.fillStyle=PAL[K]||'#000';g.fillRect(x+1,y+1,Math.max(1,cell-2),Math.max(1,cell-2));g.lineWidth=Math.max(2,cell*.1);g.strokeStyle=selectedCursorBorder();g.strokeRect(x+1,y+1,Math.max(1,cell-2),Math.max(1,cell-2));g.restore()}}}
     renderSpriteButtons();renderPreviewPalette();syncCss();
   }
   function schedule(frame=fr()){pendingFrame=frame;if(scheduled)return;scheduled=requestAnimationFrame(()=>{scheduled=0;draw(pendingFrame||fr());pendingFrame=null})}
@@ -44,9 +44,9 @@
   window.syncSpriteGridOverlays=syncGridGuards;
   function syncSpriteHoverOverlay(){
     if(!stage)return;stage.querySelectorAll('.spritepixelhover').forEach(o=>o.style.display='none');stage.querySelectorAll('.spritecanvas').forEach(c=>c.style.cursor='crosshair');if(!hover)return;
-    const unit=stage.querySelector('.spriteunit[data-sprite-index="'+hover.index+'"]'),c=unit?.querySelector('.spritecanvas'),o=ensureSpriteOverlay(unit);if(!c||!o||!c.clientWidth)return;const n=sz(),cw=c.clientWidth/n,ch=c.clientHeight/n;o.style.display='block';o.style.left=(c.offsetLeft+hover.x*cw)+'px';o.style.top=(c.offsetTop+hover.y*ch)+'px';o.style.width=Math.max(1,cw)+'px';o.style.height=Math.max(1,ch)+'px';o.style.background=PAL[blinkOn?K:hoverCurrentColor()]||'#fff';o.style.borderColor=blinkOn?'#fff':'#111';if(hover.source==='sprites')c.style.cursor='none';syncGridGuards();
+    const unit=stage.querySelector('.spriteunit[data-sprite-index="'+hover.index+'"]'),c=unit?.querySelector('.spritecanvas'),o=ensureSpriteOverlay(unit);if(!c||!o||!c.clientWidth)return;const n=sz(),cw=c.clientWidth/n,ch=c.clientHeight/n;o.style.display='block';o.style.left=(c.offsetLeft+hover.x*cw)+'px';o.style.top=(c.offsetTop+hover.y*ch)+'px';o.style.width=Math.max(1,cw)+'px';o.style.height=Math.max(1,ch)+'px';o.style.background=PAL[K]||'#000';o.style.borderColor=selectedCursorBorder();c.style.cursor='none';syncGridGuards();
   }
-  function setHover(index,x,y,source){const next={index:Number(index)||0,x:C(Math.floor(x),0,sz()-1),y:C(Math.floor(y),0,sz()-1),source:source||'object'};if(hover&&hover.index===next.index&&hover.x===next.x&&hover.y===next.y&&hover.source===next.source)return;hover=next;blinkOn=false;schedule();syncSpriteHoverOverlay()}
+  function setHover(index,x,y,source){const next={index:Number(index)||0,x:C(Math.floor(x),0,sz()-1),y:C(Math.floor(y),0,sz()-1),source:source||'object'};if(hover&&hover.index===next.index&&hover.x===next.x&&hover.y===next.y&&hover.source===next.source)return;hover=next;schedule();syncSpriteHoverOverlay()}
   function clearHover(){if(!hover)return;hover=null;wrap.style.cursor='grab';schedule();syncSpriteHoverOverlay()}
   function refreshHover(){if(hover){schedule();syncSpriteHoverOverlay()}}
   window.setPreviewHover=(index,x,y)=>setHover(index,x,y,'sprites');window.clearPreviewHover=clearHover;
@@ -79,6 +79,5 @@
     stage.addEventListener('pointerout',e=>{if(e.target instanceof HTMLCanvasElement&&e.target.classList.contains('spritecanvas')&&!drawing)clearHover()},true);stage.addEventListener('pointerleave',()=>{if(!drawing)clearHover()},true);if(typeof MutationObserver!=='undefined')new MutationObserver(()=>requestAnimationFrame(()=>{syncGridGuards();syncSpriteHoverOverlay()})).observe(stage,{childList:true,subtree:true});
   }
   if(typeof ResizeObserver!=='undefined'){new ResizeObserver(()=>{syncCss();syncGridGuards();syncSpriteHoverOverlay()}).observe(wrap);if($('editorWrap'))new ResizeObserver(()=>{syncGridGuards();syncSpriteHoverOverlay()}).observe($('editorWrap'))}else window.addEventListener('resize',()=>{syncCss();syncGridGuards();syncSpriteHoverOverlay()});
-  const blinkTimer=setInterval(()=>{if(!hover)return;blinkOn=!blinkOn;schedule();syncSpriteHoverOverlay()},280);window.addEventListener('beforeunload',()=>clearInterval(blinkTimer));
   draw();requestAnimationFrame(syncGridGuards);
 })();

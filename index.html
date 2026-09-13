@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260914a">
-<link rel="stylesheet" href="responsive.css?v=20260914a">
-<link rel="stylesheet" href="app-editing.css?v=20260914a">
-<link rel="stylesheet" href="layout.css?v=20260914a">
-<link rel="stylesheet" href="ui-scale.css?v=20260914a">
+<link rel="stylesheet" href="styles.css?v=20260914b">
+<link rel="stylesheet" href="responsive.css?v=20260914b">
+<link rel="stylesheet" href="app-editing.css?v=20260914b">
+<link rel="stylesheet" href="layout.css?v=20260914b">
+<link rel="stylesheet" href="ui-scale.css?v=20260914b">
+<link rel="stylesheet" href="workspace.css?v=20260914b">
 </head>
 <body>
 <header>
@@ -18,22 +19,22 @@
 <main id="mainLayout">
   <aside id="previewColumn" class="panel leftpanel">
     <section id="previewSection" class="sideblock previewsection collapsible" data-collapsible>
-      <div class="sectionhead"><h2>Preview</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Preview">▾</button></div>
+      <div class="sectionhead"><h2>Object</h2><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Object">▾</button></div>
       <div class="collapsebody">
-        <div id="previewPalette" aria-label="Preview drawing colors" style="display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;margin:2px 0 3px;flex:0 0 auto"></div>
-        <div class="previewzoom"><button id="previewZoomIn" title="Zoom preview in">+</button><button id="previewZoomOut" title="Zoom preview out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button><div id="previewSpriteButtons" class="tools" style="display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap"></div></div>
-        <div id="previewWrap" class="previewwrap" title="Select a color above and draw on a Sprite · right-click/eraser sets Color 0 · drag outside sprites to pan · Ctrl+wheel to zoom"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Composite object preview"></canvas></div>
+        <div id="previewPalette" aria-label="Object drawing colors" style="display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;margin:2px 0 3px;flex:0 0 auto"></div>
+        <div class="previewzoom"><button id="previewZoomIn" title="Zoom Object in">+</button><button id="previewZoomOut" title="Zoom Object out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button><div id="previewSpriteButtons" class="tools" style="display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap"></div></div>
+        <div id="previewWrap" class="previewwrap" title="Select a color above and draw on the topmost Sprite · right-click/eraser sets Color 0 · drag outside sprites to pan · Ctrl+wheel to zoom"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Object canvas"></canvas></div>
       </div>
     </section>
   </aside>
 
-  <div id="mainSplitter" class="mainsplitter" role="separator" aria-orientation="vertical" aria-label="Resize preview and object editor" tabindex="0"></div>
+  <div id="mainSplitter" class="mainsplitter" role="separator" aria-orientation="vertical" aria-label="Resize Object and Sprites" tabindex="0"></div>
 
   <section class="mid">
     <div class="panel editorpanel">
       <div class="editorhead">
         <div class="row wrap">
-          <div class="editoridentity"><h2 id="title">Object editor</h2></div>
+          <div class="editoridentity"><h2 id="title">Sprites</h2></div>
           <div class="tools">
             <label class="spritesizecontrol">Size<select id="spriteSize"><option value="16">16×16</option><option value="8">8×8</option></select></label>
             <button id="editorZoomIn" title="Zoom in">+</button><button id="editorZoomOut" title="Zoom out">−</button><span id="editorZoom" class="zoombadge">50%</span>
@@ -65,7 +66,7 @@
 
     <section class="panel timelinepanel collapsible" data-collapsible>
       <div class="timelinehead"><div class="sectionhead"><h2>Frames / animation</h2><div class="sectionactions"><button id="playFrames">Play</button><button id="stopFrames" disabled>Stop</button><button id="slowerFrames" class="speedarrow" title="Slow motion" aria-label="Slow motion">←</button><span id="playbackSpeed" class="playbackspeed" title="Playback speed">100%</span><button id="fasterFrames" class="speedarrow" title="Fast forward" aria-label="Fast forward">→</button><button id="addFrame">+Frame</button><button id="dupFrame">Duplicate</button><button id="delFrame">Delete</button><button id="exportFrameMenuButton" aria-haspopup="menu" aria-expanded="false">Export frame</button><button class="collapseToggle" type="button" aria-expanded="true" title="Hide Frames / animation">▾</button></div></div></div>
-      <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Wait is measured in 60 Hz frames.</p></div>
+      <div class="collapsebody"><div id="frames" class="timeline"></div><p class="hint">Drag frames to reorder · Click a frame name to rename · Wait is measured in 60 Hz frames.</p></div>
     </section>
   </section>
 </main>
@@ -76,6 +77,6 @@
   <p id="warn" class="warning"></p>
 </div>
 
-<script src="app-core.js?v=20260914a"></script><script src="palette-presets.js?v=20260914a"></script><script src="app-canvas.js?v=20260914a"></script><script src="app-ui.js?v=20260914a"></script><script src="app-palettes.js?v=20260914a"></script><script src="app-preview.js?v=20260914a"></script><script src="app-sprites.js?v=20260914a"></script><script src="app-frames.js?v=20260914a"></script><script src="app-editing.js?v=20260914a"></script><script src="app-patterns.js?v=20260914a"></script><script src="app-panels.js?v=20260914a"></script>
+<script src="app-core.js?v=20260914b"></script><script src="palette-presets.js?v=20260914b"></script><script src="app-canvas.js?v=20260914b"></script><script src="app-ui.js?v=20260914b"></script><script src="app-palettes.js?v=20260914b"></script><script src="app-preview.js?v=20260914b"></script><script src="app-sprites.js?v=20260914b"></script><script src="app-frames.js?v=20260914b"></script><script src="app-editing.js?v=20260914b"></script><script src="app-patterns.js?v=20260914b"></script><script src="app-panels.js?v=20260914b"></script>
 </body>
 </html>

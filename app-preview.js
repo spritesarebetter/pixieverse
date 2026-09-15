@@ -3,7 +3,7 @@
   const canvas=$('previewCanvas'),wrap=$('previewWrap'),stage=$('editorStage'),spriteButtons=$('previewSpriteButtons'),previewPalette=$('previewPalette');
   let zoom=1,showBorders=true,scheduled=0,pendingFrame=null,hover=null;
   let panX=0,panY=0,panning=false,panStartX=0,panStartY=0,pointerStartX=0,pointerStartY=0;
-  let drawing=false,drawErase=false,drawLast=null,drawTarget=-1,drawChanged=false,drawSelectionChanged=false,drawPointerId=null;
+  let drawing=false,drawErase=false,drawLast=null,drawTarget=-1,drawChanged=false,drawPointerId=null;
 
   function boxes(frame){const n=sz(),out=[];frame.sprites.forEach((s,index)=>{if(!s.visible)return;const x=spriteOffsetX(s,index),y=spriteOffsetY(s,index);out.push({s,index,x,y,right:x+n,bottom:y+n})});return out}
   function bounds(frame){const n=sz(),visible=boxes(frame);if(!visible.length)return{minX:0,minY:0,maxX:n,maxY:n,w:n,h:n};const minX=Math.min(...visible.map(b=>b.x)),minY=Math.min(...visible.map(b=>b.y)),maxX=Math.max(...visible.map(b=>b.right)),maxY=Math.max(...visible.map(b=>b.bottom));return{minX,minY,maxX,maxY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)}}
@@ -19,7 +19,7 @@
     [...previewPalette.children].forEach((b,index)=>{b.setAttribute('aria-pressed',String(index===K));b.style.cssText='display:block;width:100%;min-width:0;height:20px;min-height:20px;padding:0;border:1px solid var(--ln);border-radius:2px;background:'+PAL[index]+';box-shadow:'+(index===K?'inset 0 0 0 2px #fff':'none')+';outline:'+(index===K?'1px solid var(--ac)':'none')+';outline-offset:-1px'});
   }
   function renderSpriteButtons(){
-    if(!spriteButtons)return;if(spriteButtons.children.length!==fr().sprites.length){spriteButtons.innerHTML='';fr().sprites.forEach((s,index)=>{const b=document.createElement('button');b.type='button';b.textContent='Sprite #'+index;b.title='Select Sprite #'+index;b.onclick=e=>{e.preventDefault();e.stopPropagation();S=index;render()};spriteButtons.appendChild(b)})}
+    if(!spriteButtons)return;if(spriteButtons.children.length!==fr().sprites.length){spriteButtons.innerHTML='';fr().sprites.forEach((s,index)=>{const b=document.createElement('button');b.type='button';b.textContent='Sprite #'+index;b.title='Select Sprite #'+index+' · hold Shift in Object to draw on it';b.onclick=e=>{e.preventDefault();e.stopPropagation();S=index;render()};spriteButtons.appendChild(b)})}
     [...spriteButtons.children].forEach((b,index)=>b.classList.toggle('on',index===S));
   }
 
@@ -37,7 +37,16 @@
 
   function canvasLogicalPoint(e){const r=canvas.getBoundingClientRect(),w=Number(canvas.dataset.gridW),h=Number(canvas.dataset.gridH),parts=String(canvas.dataset.bounds||'').split(',').map(Number);if(!r.width||!r.height||!w||!h||parts.length!==4||parts.some(v=>!Number.isFinite(v)))return null;if(e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom)return null;return{gx:parts[0]+Math.floor((e.clientX-r.left)/r.width*w),gy:parts[1]+Math.floor((e.clientY-r.top)/r.height*h)}}
   function localPointFor(index,p){const s=fr().sprites[index];if(!s||!s.visible||!p)return null;const x=p.gx-spriteOffsetX(s,index),y=p.gy-spriteOffsetY(s,index),n=sz();return x>=0&&y>=0&&x<n&&y<n?{x,y}:null}
-  function spriteHitAt(p){if(!p)return null;const n=sz();return spritesByPriority(fr(),true).find(({s,index})=>s.visible&&p.gx>=spriteOffsetX(s,index)&&p.gx<spriteOffsetX(s,index)+n&&p.gy>=spriteOffsetY(s,index)&&p.gy<spriteOffsetY(s,index)+n)||null}
+  function hitsAt(p){if(!p)return[];return spritesByPriority(fr(),true).map(({s,index})=>({s,index,local:localPointFor(index,p)})).filter(hit=>hit.local)}
+  function anySpriteAt(p){return hitsAt(p)[0]||null}
+  function targetAt(p,shift=false,erase=false){
+    if(!p)return null;
+    if(shift){const s=fr().sprites[S],local=localPointFor(S,p);return s&&local?{s,index:S,local}:null}
+    const hits=hitsAt(p);if(!hits.length)return null;
+    if(erase||K===0)return hits.find(hit=>!!hit.s.mask[hit.local.y]?.[hit.local.x])||null;
+    const selected=hits.find(hit=>hit.index===S&&((hit.s.lines[hit.local.y]?.color&15)===K));if(selected)return selected;
+    return hits.find(hit=>(hit.s.lines[hit.local.y]?.color&15)===K)||null;
+  }
 
   function ensureSpriteOverlay(unit){const body=unit?.querySelector('.spritebody');if(!body)return null;let o=body.querySelector('.spritepixelhover');if(!o){o=document.createElement('div');o.className='spritepixelhover';body.appendChild(o)}return o}
   function syncGridGuards(){if(!stage)return;const n=sz();stage.querySelectorAll('.spriteunit').forEach(unit=>{const body=unit.querySelector('.spritebody'),c=unit.querySelector('.spritecanvas');if(!body||!c||!c.clientWidth)return;let guard=body.querySelector('.spritegridguard');if(!guard){guard=document.createElement('div');guard.className='spritegridguard';body.appendChild(guard)}const cell=c.clientWidth/n;guard.style.left=c.offsetLeft+'px';guard.style.top=c.offsetTop+'px';guard.style.width=c.clientWidth+'px';guard.style.height=c.clientHeight+'px';guard.style.backgroundSize=cell+'px '+cell+'px'})}
@@ -51,17 +60,19 @@
   function refreshHover(){if(hover){schedule();syncSpriteHoverOverlay()}}
   window.setPreviewHover=(index,x,y)=>setHover(index,x,y,'sprites');window.clearPreviewHover=clearHover;
 
+  function refreshSpriteLineColors(index){const unit=stage?.querySelector('.spriteunit[data-sprite-index="'+index+'"]'),s=fr().sprites[index];if(!unit||!s)return;unit.querySelectorAll('.linecolorswatch').forEach((sw,y)=>{if(s.lines[y])sw.style.background=PAL[s.lines[y].color&15]})}
+  window.refreshSpriteLineColors=refreshSpriteLineColors;
   function redrawSpriteCanvas(index){
     const unit=stage?.querySelector('.spriteunit[data-sprite-index="'+index+'"]'),c=unit?.querySelector('.spritecanvas'),s=fr().sprites[index];if(!c||!s)return;const n=sz(),g=c.getContext('2d'),scale=Math.max(1,Math.round(c.width/n));g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;g.clearRect(0,0,c.width,c.height);
     for(let y=0;y<n;y++)for(let x=0;x<n;x++){g.fillStyle=PAL[s.mask[y][x]?s.lines[y].color:0];g.fillRect(x*scale,y*scale,scale,scale)}
-    g.strokeStyle='rgba(255,255,255,.16)';g.lineWidth=Math.max(1,Math.round(window.devicePixelRatio||1));for(let x=0;x<=n;x++){g.beginPath();g.moveTo(x*scale+.5,0);g.lineTo(x*scale+.5,c.height);g.stroke()}for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(c.width,y*scale+.5);g.stroke()}syncGridGuards();
+    g.strokeStyle='rgba(255,255,255,.16)';g.lineWidth=Math.max(1,Math.round(window.devicePixelRatio||1));for(let x=0;x<=n;x++){g.beginPath();g.moveTo(x*scale+.5,0);g.lineTo(x*scale+.5,c.height);g.stroke()}for(let y=0;y<=n;y++){g.beginPath();g.moveTo(0,y*scale+.5);g.lineTo(y*0+x*scale+.5,c.height);g.stroke()}syncGridGuards();
   }
   function paintLine(s,a,b,value){let x0=a.x,y0=a.y,x1=b.x,y1=b.y,dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,er=dx+dy,changed=false;for(;;){const colored=value&&K!==0,next=colored?1:0;if(s.mask[y0][x0]!==next){s.mask[y0][x0]=next;changed=true}if(colored&&s.lines[y0].color!==K){s.lines[y0].color=K;changed=true}if(x0===x1&&y0===y1)break;const e2=2*er;if(e2>=dy){er+=dy;x0+=sx}if(e2<=dx){er+=dx;y0+=sy}}return changed}
-  function paintAtObjectPoint(p){const hit=spriteHitAt(p);if(!hit){drawLast=null;drawTarget=-1;clearHover();return}const local=localPointFor(hit.index,p);if(!local)return;if(S!==hit.index){S=hit.index;drawSelectionChanged=true}const same=drawTarget===hit.index;drawChanged=paintLine(hit.s,same&&drawLast?drawLast:local,local,!drawErase)||drawChanged;drawTarget=hit.index;drawLast=local;L=local.y;setHover(hit.index,local.x,local.y,'object');redrawSpriteCanvas(hit.index);schedule()}
-  function updateObjectCursor(e){if(panning){wrap.style.cursor='grabbing';return}const p=canvasLogicalPoint(e),hit=spriteHitAt(p);if(hit){const local=localPointFor(hit.index,p);if(local)setHover(hit.index,local.x,local.y,'object');wrap.style.cursor='none'}else{clearHover();wrap.style.cursor='grab'}}
-  function beginDrawing(e,p){if($('selectTool')?.classList.contains('on'))return false;if(!spriteHitAt(p))return false;e.preventDefault();drawing=true;drawPointerId=e.pointerId;drawErase=e.button===2||tool==='eraser';drawLast=null;drawTarget=-1;drawChanged=false;drawSelectionChanged=false;wrap.setPointerCapture?.(e.pointerId);paintAtObjectPoint(p);return true}
+  function paintAtObjectPoint(p,e){const hit=targetAt(p,!!e?.shiftKey,drawErase);if(!hit){drawLast=null;drawTarget=-1;clearHover();return}const same=drawTarget===hit.index;drawChanged=paintLine(hit.s,same&&drawLast?drawLast:hit.local,hit.local,!drawErase)||drawChanged;drawTarget=hit.index;drawLast=hit.local;L=hit.local.y;setHover(hit.index,hit.local.x,hit.local.y,'object');redrawSpriteCanvas(hit.index);refreshSpriteLineColors(hit.index);schedule()}
+  function updateObjectCursor(e){if(panning){wrap.style.cursor='grabbing';return}const p=canvasLogicalPoint(e),hit=targetAt(p,!!e.shiftKey,tool==='eraser'||K===0);if(hit){setHover(hit.index,hit.local.x,hit.local.y,'object');wrap.style.cursor='none'}else{clearHover();wrap.style.cursor=anySpriteAt(p)?'not-allowed':'grab'}}
+  function beginDrawing(e,p){if($('selectTool')?.classList.contains('on'))return false;const erase=e.button===2||tool==='eraser'||K===0;if(!targetAt(p,!!e.shiftKey,erase))return false;e.preventDefault();drawing=true;drawPointerId=e.pointerId;drawErase=erase;drawLast=null;drawTarget=-1;drawChanged=false;wrap.setPointerCapture?.(e.pointerId);paintAtObjectPoint(p,e);return true}
   function endPointer(e){
-    if(drawing&&e.pointerId===drawPointerId){drawing=false;drawPointerId=null;drawLast=null;drawTarget=-1;const changed=drawChanged,selectionChanged=drawSelectionChanged;drawChanged=false;drawSelectionChanged=false;if(changed)dirty();if(changed||selectionChanged)render();else schedule();try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}requestAnimationFrame(()=>{syncGridGuards();syncSpriteHoverOverlay()});updateObjectCursor(e);return}
+    if(drawing&&e.pointerId===drawPointerId){drawing=false;drawPointerId=null;drawLast=null;drawTarget=-1;const changed=drawChanged;drawChanged=false;if(changed)dirty();if(changed)render();else schedule();try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}requestAnimationFrame(()=>{syncGridGuards();syncSpriteHoverOverlay()});updateObjectCursor(e);return}
     if(!panning)return;panning=false;wrap.classList.remove('panning');try{wrap.releasePointerCapture?.(e.pointerId)}catch(_){}updateObjectCursor(e);
   }
 
@@ -69,10 +80,10 @@
   $('previewZoomIn').onclick=()=>{zoom=C(Math.round((zoom+.1)*10)/10,.1,8);syncCss()};$('previewZoomOut').onclick=()=>{zoom=C(Math.round((zoom-.1)*10)/10,.1,8);syncCss()};
   $('previewBorders').onclick=()=>{showBorders=!showBorders;$('previewBorders').classList.toggle('on',showBorders);$('previewBorders').setAttribute('aria-pressed',String(showBorders));schedule()};
   wrap.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoom=C(Math.round((zoom+(e.deltaY<0 ? .1 : -.1))*10)/10,.1,8);syncCss()},{passive:false});
-  wrap.addEventListener('contextmenu',e=>{if(spriteHitAt(canvasLogicalPoint(e)))e.preventDefault()});
-  wrap.addEventListener('pointerdown',e=>{const p=canvasLogicalPoint(e),hit=spriteHitAt(p);if((e.button===0||e.button===2)&&hit&&beginDrawing(e,p))return;if(hit){e.preventDefault();return}if(e.button!==0)return;e.preventDefault();clearHover();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.style.cursor='grabbing';wrap.setPointerCapture?.(e.pointerId)});
-  wrap.addEventListener('pointermove',e=>{if(drawing&&e.pointerId===drawPointerId){e.preventDefault();paintAtObjectPoint(canvasLogicalPoint(e));return}if(panning){e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss();return}updateObjectCursor(e)});
-  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,endPointer));wrap.addEventListener('dblclick',e=>{if(spriteHitAt(canvasLogicalPoint(e)))return;e.preventDefault();panX=panY=0;syncCss()});wrap.addEventListener('pointerleave',()=>{if(!panning&&!drawing)clearHover()});
+  wrap.addEventListener('contextmenu',e=>{if(anySpriteAt(canvasLogicalPoint(e)))e.preventDefault()});
+  wrap.addEventListener('pointerdown',e=>{const p=canvasLogicalPoint(e),inside=anySpriteAt(p);if((e.button===0||e.button===2)&&beginDrawing(e,p))return;if(inside){e.preventDefault();return}if(e.button!==0)return;e.preventDefault();clearHover();panning=true;pointerStartX=e.clientX;pointerStartY=e.clientY;panStartX=panX;panStartY=panY;wrap.classList.add('panning');wrap.style.cursor='grabbing';wrap.setPointerCapture?.(e.pointerId)});
+  wrap.addEventListener('pointermove',e=>{if(drawing&&e.pointerId===drawPointerId){e.preventDefault();paintAtObjectPoint(canvasLogicalPoint(e),e);return}if(panning){e.preventDefault();panX=Math.round(panStartX+e.clientX-pointerStartX);panY=Math.round(panStartY+e.clientY-pointerStartY);syncCss();return}updateObjectCursor(e)});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wrap.addEventListener(ev,endPointer));wrap.addEventListener('dblclick',e=>{if(anySpriteAt(canvasLogicalPoint(e)))return;e.preventDefault();panX=panY=0;syncCss()});wrap.addEventListener('pointerleave',()=>{if(!panning&&!drawing)clearHover()});
 
   if(stage){
     stage.addEventListener('pointermove',e=>{const c=e.target instanceof HTMLCanvasElement&&e.target.classList.contains('spritecanvas')?e.target:null;if(!c)return;const unit=c.closest('.spriteunit');if(!unit)return;const r=c.getBoundingClientRect();if(!r.width||!r.height)return;const x=C(Math.floor((e.clientX-r.left)/r.width*sz()),0,sz()-1),y=C(Math.floor((e.clientY-r.top)/r.height*sz()),0,sz()-1);setHover(Number(unit.dataset.spriteIndex)||0,x,y,'sprites')},true);

@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  if(!document.querySelector('link[href*="workspace.css"]')){const link=document.createElement('link');link.rel='stylesheet';link.href='workspace.css?v=20260914a';document.head.appendChild(link)}
+  if(!document.querySelector('link[href*="workspace.css"]')){const link=document.createElement('link');link.rel='stylesheet';link.href='workspace.css?v=20260916b';document.head.appendChild(link)}
   const objectTitle=document.querySelector('#previewSection .sectionhead h2');if(objectTitle)objectTitle.textContent='Object';
   const objectToggle=document.querySelector('#previewSection .collapseToggle');if(objectToggle)objectToggle.title='Hide Object';
   const main=$('mainLayout'),splitter=$('mainSplitter'),WIDTH_KEY='pixieverse.previewWidth';
@@ -17,10 +17,21 @@
   baseChangeEditorZoom(0);
   changeEditorZoom=function(delta){if(delta!==0)userManualZoom=true;baseChangeEditorZoom(delta);window.syncSpriteGridOverlays?.()};
   function stableFitNow(force=false){
-    if(!editorWrap||!stage||fitting||(userManualZoom&&!force))return;const unit=stage.querySelector('.spriteunit');if(!unit)return;fitting=true;
-    try{const available=Math.max(70,editorWrap.clientHeight-14);let lo=.1,hi=8,best=.1;for(let i=0;i<11;i++){const midZoom=(lo+hi)/2;editorZoom=midZoom;applyEditorScale();const h=unit.getBoundingClientRect().height;if(h<=available){best=midZoom;lo=midZoom}else hi=midZoom}editorZoom=Math.max(.1,Math.floor(best*100)/100);applyEditorScale();window.syncSpriteGridOverlays?.()}finally{fitting=false}
+    if(!editorWrap||!stage||fitting)return;const unit=stage.querySelector('.spriteunit');if(!unit)return;
+    const availableW=Math.max(110,editorWrap.clientWidth-18),availableH=Math.max(70,editorWrap.clientHeight-18),current=stage.getBoundingClientRect(),overflow=current.width>availableW+1||current.height>availableH+1;
+    if(userManualZoom&&!force&&!overflow)return;
+    fitting=true;
+    try{
+      let lo=.1,hi=userManualZoom&&!force?Math.max(.1,editorZoom):8,best=.1;
+      for(let i=0;i<12;i++){
+        const midZoom=(lo+hi)/2;editorZoom=midZoom;applyEditorScale();
+        const rect=stage.getBoundingClientRect(),fits=rect.width<=availableW&&rect.height<=availableH;
+        if(fits){best=midZoom;lo=midZoom}else hi=midZoom;
+      }
+      editorZoom=Math.max(.1,Math.floor(best*100)/100);applyEditorScale();window.syncSpriteGridOverlays?.();
+    }finally{fitting=false}
   }
-  function queueStableFit(force=false){if(userManualZoom&&!force)return;if(fitQueued)cancelAnimationFrame(fitQueued);fitQueued=requestAnimationFrame(()=>{fitQueued=0;stableFitNow(force)})}
+  function queueStableFit(force=false){if(fitQueued)cancelAnimationFrame(fitQueued);fitQueued=requestAnimationFrame(()=>{fitQueued=0;stableFitNow(force)})}
   window.fitObjectEditorSprites=(iterations,force=false)=>queueStableFit(force);window.resetObjectEditorFit=()=>{userManualZoom=false;queueStableFit(true)};
 
   function timelineLimits(){const total=mid?.clientHeight||500,palette=$('paletteBar')?.getBoundingClientRect().height||43;return{min:86,max:Math.max(110,total-palette-190)}}

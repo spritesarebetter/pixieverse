@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pixieverse — MSX2 Object Editor</title>
-<link rel="stylesheet" href="styles.css?v=20260916a">
-<link rel="stylesheet" href="responsive.css?v=20260916a">
-<link rel="stylesheet" href="app-editing.css?v=20260916a">
-<link rel="stylesheet" href="layout.css?v=20260916a">
-<link rel="stylesheet" href="ui-scale.css?v=20260916a">
-<link rel="stylesheet" href="workspace.css?v=20260916a">
+<link rel="stylesheet" href="styles.css?v=20260916b">
+<link rel="stylesheet" href="responsive.css?v=20260916b">
+<link rel="stylesheet" href="app-editing.css?v=20260916b">
+<link rel="stylesheet" href="layout.css?v=20260916b">
+<link rel="stylesheet" href="ui-scale.css?v=20260916b">
+<link rel="stylesheet" href="workspace.css?v=20260916b">
 </head>
 <body>
 <header>
@@ -23,7 +23,7 @@
       <div class="collapsebody">
         <div id="previewPalette" aria-label="Object drawing colors" style="display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;margin:2px 0 3px;flex:0 0 auto"></div>
         <div class="previewzoom"><button id="previewZoomIn" title="Zoom Object in">+</button><button id="previewZoomOut" title="Zoom Object out">−</button><span id="previewZoom" class="zoombadge">100%</span><button id="previewBorders" class="on" aria-pressed="true">Borders</button><div id="previewSpriteButtons" class="tools" style="display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap"></div></div>
-        <div id="previewWrap" class="previewwrap" title="Selected color chooses the matching Sprite row · hold Shift to draw on the selected Sprite · Color 0/right-click/eraser clears pixels · drag outside sprites to pan · Ctrl+wheel to zoom"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Object canvas"></canvas></div>
+        <div id="previewWrap" class="previewwrap" title="Selected color chooses a matching Sprite row when sprites overlap · a single Sprite area draws directly · hold Shift to force the selected Sprite · Color 0/right-click/eraser clears pixels · drag outside sprites to pan · Ctrl+wheel to zoom"><canvas id="previewCanvas" class="artboardshadow compositecanvas" aria-label="Object canvas"></canvas></div>
       </div>
     </section>
   </aside>
@@ -77,6 +77,6 @@
   <p id="warn" class="warning"></p>
 </div>
 
-<script src="app-core.js?v=20260916a"></script><script src="palette-presets.js?v=20260916a"></script><script src="app-canvas.js?v=20260916a"></script><script src="app-ui.js?v=20260916a"></script><script src="app-palettes.js?v=20260916a"></script><script src="app-preview.js?v=20260916a"></script><script src="app-sprites.js?v=20260916a"></script><script src="app-frames.js?v=20260916a"></script><script src="app-editing.js?v=20260916a"></script><script src="app-patterns.js?v=20260916a"></script><script src="app-workspace.js?v=20260916a"></script><script src="app-panels.js?v=20260916a"></script>
+<script src="app-core.js?v=20260916b"></script><script src="palette-presets.js?v=20260916b"></script><script src="app-canvas.js?v=20260916b"></script><script src="app-ui.js?v=20260916b"></script><script src="app-palettes.js?v=20260916b"></script><script src="app-preview.js?v=20260916b"></script><script src="app-sprites.js?v=20260916b"></script><script src="app-frames.js?v=20260916b"></script><script src="app-editing.js?v=20260916b"></script><script src="app-patterns.js?v=20260916b"></script><script src="app-workspace.js?v=20260916b"></script><script src="app-panels.js?v=20260916b"></script>
 </body>
 </html>
